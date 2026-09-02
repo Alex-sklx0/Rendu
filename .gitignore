@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────
+#  RENDU — .gitignore (monorepo)
+#  Cubre: frontend (Vite/React), servicios Node.js, Postgres,
+#         Docker, editores y entornos locales.
+# ─────────────────────────────────────────────────────────────
+
+# ── Node / npm ────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.npm/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ── Build outputs ─────────────────────────────────────────────
+dist/
+build/
+out/
+.output/
+.vite/
+
+# ── Vite ──────────────────────────────────────────────────────
+*.local
+vite.config.ts.timestamp-*
+
+# ── TypeScript ────────────────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── Environment / secretos ────────────────────────────────────
+.env
+.env.*
+!.env.example        # mantener el ejemplo en el repo
+
+# ── Docker (datos locales) ────────────────────────────────────
+# Los volúmenes y datos de Postgres no van al repo
+docker/data/
+.docker/
+postgres-data/
+pgdata/
+
+# ── Logs ──────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+
+# ── Sistema operativo ─────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Editores / IDEs ───────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json   # compartir recomendaciones de extensiones sí
+!.vscode/settings.json      # configuración de proyecto sí
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ── Herramientas de testing ───────────────────────────────────
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+.vitest/
+
+# ── Cache ─────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.turbo/
+
+# ── Misceláneos ───────────────────────────────────────────────
+*.pid
+*.seed
+*.pid.lock
+.node_repl_history
