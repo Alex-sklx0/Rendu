@@ -13,7 +13,7 @@ export function FamilySelect({ registration, hasError, id = "id_familia" }: Fami
   return (
     <Select id={id} hasError={hasError} defaultValue="" {...registration}>
       <option value="" disabled>
-        Selecciona una familia de material
+        Selecciona una opción
       </option>
       {FAMILIAS_MATERIAL.map((familia) => (
         <option key={familia.id} value={familia.id}>
