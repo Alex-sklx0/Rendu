@@ -1,0 +1,83 @@
+name: rendu
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_USE_MOCKS=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - api-gateway
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rendu
+      POSTGRES_PASSWORD: rendu
+      POSTGRES_DB: rendu
+    ports:
+      - "5432:5432"
+    volumes:
+      - rendu_pgdata:/var/lib/postgresql/data
+      - ./database/postgres/init:/docker-entrypoint-initdb.d
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      - PORT=8001
+      - DATABASE_URL=postgresql://rendu:rendu@postgres:5432/rendu
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+
+  empresas-service:
+    build: ./services/empresas-service
+    environment:
+      - PORT=8002
+      - DATABASE_URL=postgresql://rendu:rendu@postgres:5432/rendu
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+
+  subproductos-service:
+    build: ./services/subproductos-service
+    environment:
+      - PORT=8003
+      - DATABASE_URL=postgresql://rendu:rendu@postgres:5432/rendu
+    ports:
+      - "8003:8003"
+    depends_on:
+      - postgres
+
+  catalogo-service:
+    build: ./services/catalogo-service
+    environment:
+      - PORT=8004
+      - DATABASE_URL=postgresql://rendu:rendu@postgres:5432/rendu
+    ports:
+      - "8004:8004"
+    depends_on:
+      - postgres
+
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "8000:80"
+    depends_on:
+      - auth-service
+      - empresas-service
+      - subproductos-service
+      - catalogo-service
+
+volumes:
+  rendu_pgdata:

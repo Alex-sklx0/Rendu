@@ -1,0 +1,57 @@
+-- Borrador de esquema — renombrar a 00-schema.sql cuando Natalia lo valide.
+-- Basado en las tareas técnicas de Trello (HU-01, HU-02, HU-03, HU-04, HU-05, HU-06, HU-17).
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    rol TEXT NOT NULL DEFAULT 'usuario',
+    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS empresas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario UUID NOT NULL REFERENCES usuarios(id),
+    nombre TEXT NOT NULL,
+    nit TEXT NOT NULL,
+    municipio TEXT NOT NULL,
+    tipo_actor TEXT NOT NULL,
+    medio_contacto TEXT
+);
+
+CREATE TABLE IF NOT EXISTS familias_material (
+    id TEXT PRIMARY KEY,
+    nombre TEXT NOT NULL
+);
+
+INSERT INTO familias_material (id, nombre) VALUES
+    ('papel_carton', 'Papel y cartón'),
+    ('plasticos', 'Plásticos'),
+    ('vidrio', 'Vidrio'),
+    ('metales', 'Metales'),
+    ('textil', 'Textil'),
+    ('madera', 'Madera')
+ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS subproductos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_empresa UUID NOT NULL REFERENCES empresas(id),
+    nombre TEXT NOT NULL,
+    descripcion TEXT,
+    id_familia TEXT NOT NULL REFERENCES familias_material(id),
+    volumen_disponible NUMERIC NOT NULL,
+    unidad_volumen TEXT NOT NULL,
+    municipio TEXT NOT NULL,
+    foto_url TEXT,
+    estado_publicacion TEXT NOT NULL DEFAULT 'borrador',
+    disponible BOOLEAN NOT NULL DEFAULT true,
+    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS manifestaciones_interes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_publicacion UUID NOT NULL REFERENCES subproductos(id),
+    id_usuario UUID NOT NULL REFERENCES usuarios(id),
+    fecha TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (id_publicacion, id_usuario)
+);
