@@ -11,12 +11,17 @@ rendu-platform/
 ├── .agents/skills/rendu-frontend # skill de Antigravity con el alcance de David
 ├── docker-compose.yml            # levanta TODO el stack para desarrollo local
 ├── frontend/                     # React + TS + Vite — propiedad de David
-├── services/                     # microservicios backend (stubs) — propiedad de Carolina
-│   ├── auth-service/
-│   ├── empresas-service/
-│   ├── subproductos-service/
-│   ├── catalogo-service/
-│   └── api-gateway/
+├── backend/                      # Monolito MVC Express — propiedad de Carolina
+│   ├── src/
+│   │   ├── server.js             # arranque de Express
+│   │   ├── config/db.js          # conexión a Postgres
+│   │   ├── routes/               # un archivo por recurso
+│   │   ├── controllers/          # lógica de request/response
+│   │   ├── models/               # queries SQL
+│   │   ├── services/             # lógica de negocio
+│   │   └── middlewares/          # errorHandler, validate
+│   ├── package.json
+│   └── Dockerfile
 ├── database/postgres/            # esquema y migraciones — propiedad de Natalia
 └── docs/api-contract.md          # contrato de API compartido frontend ↔ backend
 ```
@@ -31,11 +36,10 @@ docker compose up --build
 
 Esto levanta:
 - **Frontend** en http://localhost:5173
-- **API Gateway** en http://localhost:8000 (enruta a los servicios)
-- **Servicios backend** (stubs, cada uno con `GET /health`) en los puertos 8001–8004
+- **Backend** en http://localhost:8000 (monolito MVC, `GET /health` disponible)
 - **PostgreSQL** en `localhost:5432` (usuario/clave `rendu`/`rendu`, base `rendu`)
 
-El frontend **no depende de que los servicios backend estén implementados**: por defecto usa
+El frontend **no depende de que el backend esté implementado**: por defecto usa
 datos simulados en el navegador (`VITE_USE_MOCKS=true`). Cuando el backend real esté listo,
 cambia esa variable a `false` en `docker-compose.yml` (o en `frontend/.env`).
 
@@ -43,9 +47,9 @@ cambia esa variable a `false` en `docker-compose.yml` (o en `frontend/.env`).
 
 - **David (frontend)**: no necesitas Docker para el día a día — `cd frontend && npm install &&
   npm run dev`. Lee `.agents/skills/rendu-frontend/SKILL.md` antes de empezar.
-- **Carolina (backend)**: cada servicio en `/services/*` es independiente — `cd
-  services/auth-service && npm install && npm run dev`. Reemplaza el contenido de `src/index.js`
-  siguiendo `/docs/api-contract.md`.
+- **Carolina (backend)**: `cd backend && npm install && npm run dev`. Implementa los controllers
+  en `src/controllers/` siguiendo `/docs/api-contract.md`. Los models van en `src/models/` y
+  la lógica de negocio pura en `src/services/`.
 - **Natalia (base de datos)**: trabaja en `/database/postgres`. El archivo
   `init/00-schema.sql.example` es un borrador — renómbralo a `.sql` cuando esté validado y
   Postgres lo ejecutará automáticamente la próxima vez que se recree el volumen
