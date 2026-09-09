@@ -6,7 +6,7 @@ export default function Splash2Page() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef2f0] px-4 py-8">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-lg sm:p-12">
         {/* ── Green Bottom-Left Corner Accent ──────────────────────── */}
         <div className="pointer-events-none absolute bottom-6 left-6 h-14 w-28 rounded-bl-xl border-b-4 border-l-4 border-[#23ce6b]" />
 
@@ -33,7 +33,7 @@ export default function Splash2Page() {
         </div>
 
         {/* ── Footer / Navigation ──────────────────────────────────── */}
-        <div className="mt-10 flex items-center justify-between border-t border-surface-100 pt-6">
+        <div className="mt-10 flex items-center justify-between pt-6">
           <Link
             to="/splash1"
             className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-ink-800"

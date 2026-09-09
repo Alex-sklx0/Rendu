@@ -137,6 +137,7 @@ El detalle completo de roles está en [`docs/agents/roles.md`](agents/roles.md).
 ## Documentación relacionada
 
 - [`README.md`](../README.md): propósito, alcance y funcionamiento de RENDU.
+- [`README-frontend.md`](README-frontend.md): funcionamiento detallado del frontend y responsabilidad de cada archivo.
 - [`api-contract.md`](agents/api-contract.md): contrato compartido entre frontend y backend.
 - [`roles.md`](agents/roles.md): reglas de participación y precios.
 - [`rendu-backend-mvc-SKILL.md`](agents/rendu-backend-mvc-SKILL.md): guía de arquitectura backend.
