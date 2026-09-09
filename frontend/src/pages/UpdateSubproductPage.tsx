@@ -8,6 +8,7 @@ export default function UpdateSubproductPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [item, setItem] = useState<SubproductoDetalle | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>();
   const [form, setForm] = useState({ nombre: "", descripcion: "", volumen_disponible: "", unidad_volumen: "kg" as UnidadVolumen, municipio: "Medellín", frecuencia: "Una vez" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -17,6 +18,7 @@ export default function UpdateSubproductPage() {
     if (!id) return;
     getSubproductoDetalle(id).then((data) => {
       setItem(data);
+      setImageUrl(data.image_url);
       setForm({ nombre: data.nombre, descripcion: data.descripcion, volumen_disponible: String(data.volumen_disponible), unidad_volumen: data.unidad_volumen as UnidadVolumen, municipio: data.municipio, frecuencia: data.frecuencia ?? "Una vez" });
     }).catch(() => setMessage("No encontramos este subproducto."))
       .finally(() => setLoading(false));
@@ -32,7 +34,7 @@ export default function UpdateSubproductPage() {
     setSaving(true);
     setMessage(null);
     try {
-      await actualizarSubproducto(id, { ...form, volumen_disponible: Number(form.volumen_disponible) });
+      await actualizarSubproducto(id, { ...form, volumen_disponible: Number(form.volumen_disponible), image_url: imageUrl });
       setMessage("Cambios guardados correctamente.");
       setTimeout(() => navigate(`/catalogo/${id}`), 700);
     } catch (error) {
@@ -63,8 +65,8 @@ export default function UpdateSubproductPage() {
         </div>
 
         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-          <div className="flex-1"><span className="field-label">Foto del material</span><label className="flex h-24 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-surface-200 text-xs text-ink-500 hover:border-[#23ce6b]"><span>▣ Arrastra una imagen aquí o selecciona un archivo</span><input type="file" accept="image/*" className="sr-only" /></label></div>
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-[#cce9df] text-4xl" role="img" aria-label="Vista previa del material">{item.emoji || "📦"}</div>
+          <div className="flex-1"><span className="field-label">Foto del material</span><label className="flex h-24 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-surface-200 text-xs text-ink-500 hover:border-[#23ce6b]"><span>▣ Arrastra una imagen aquí o selecciona un archivo</span><input type="file" accept="image/*" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setImageUrl(reader.result as string); reader.readAsDataURL(file); }} /></label></div>
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#cce9df]" role="img" aria-label="Vista previa del material">{imageUrl ? <img src={imageUrl} alt="Vista previa del material" className="h-full w-full object-cover" /> : <span className="text-center text-xs font-semibold text-[#00805b]">Vista previa</span>}</div>
         </div>
 
         {message && <p className={`mt-4 text-sm font-semibold ${message.includes("correctamente") ? "text-[#00805b]" : "text-red-600"}`}>{message}</p>}
