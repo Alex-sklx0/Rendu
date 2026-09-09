@@ -32,3 +32,25 @@ export type Subproducto = {
   estado_publicacion: "borrador" | "publicado";
   disponible: boolean;
 };
+
+export type SubproductoCatalogo = {
+  id: string;
+  nombre: string;
+  familia: string;
+  id_familia: string;
+  volumen_disponible: number;
+  unidad_volumen: string;
+  empresa: string;
+  municipio: string;
+  emoji: string;
+  destacado?: boolean;
+};
+
+export type SubproductoDetalle = SubproductoCatalogo & {
+  descripcion: string;
+  condiciones: string;
+  frecuencia?: string;
+  fecha_publicacion?: string;
+  medio_contacto?: string;
+};
+
