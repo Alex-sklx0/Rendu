@@ -92,13 +92,21 @@ export default function SubproductDetailPage() {
       </div>
 
       {/* ── Main Layout Split ─────────────────────────────────────── */}
-      <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Column: Visual Image Banner */}
         <div className="lg:col-span-5">
-          <div className="flex h-72 w-full items-center justify-center rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
-            <span className="select-none text-8xl" role="img" aria-label={subproducto.nombre}>
-              {subproducto.emoji || "📦"}
-            </span>
+          <div className="flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
+            {subproducto.image_url ? (
+              <img
+                src={subproducto.image_url}
+                alt={`Foto de ${subproducto.nombre}`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-[#23ce6b]/60 text-[#23ce6b]" aria-label="Sin fotografía">
+                <span className="text-4xl" aria-hidden="true">+</span>
+              </div>
+            )}
           </div>
 
           {/* Quick specs pill on mobile/desktop */}
@@ -118,13 +126,6 @@ export default function SubproductDetailPage() {
 
         {/* Right Column: Details & Contact */}
         <div className="lg:col-span-7">
-          <Link
-            to={`/subproductos/${subproducto.id}/editar`}
-            className="absolute right-0 top-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-[#23ce6b] shadow-md transition-transform hover:scale-105"
-            aria-label="Editar subproducto"
-          >
-            <span className="text-2xl" aria-hidden="true">✎</span>
-          </Link>
           <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
             {/* Category badge */}
             <div className="mb-3">

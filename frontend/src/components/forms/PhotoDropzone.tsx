@@ -4,6 +4,8 @@ import clsx from "@/lib/clsx";
 type PhotoDropzoneProps = {
   maxFiles?: number;
   maxSizeMB?: number;
+  onPrimaryImageChange?: (imageUrl: string | undefined) => void;
+  showPreviews?: boolean;
 };
 
 type PreviewFile = {
@@ -11,7 +13,7 @@ type PreviewFile = {
   url: string;
 };
 
-export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5 }: PhotoDropzoneProps) {
+export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5, onPrimaryImageChange, showPreviews = true }: PhotoDropzoneProps) {
   const [previews, setPreviews] = useState<PreviewFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -29,15 +31,35 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5 }: PhotoDropzoneProp
         newPreviews.push({ file, url: URL.createObjectURL(file) });
       }
 
-      setPreviews((prev) => [...prev, ...newPreviews]);
+      setPreviews((prev) => {
+        const next = [...prev, ...newPreviews];
+        const primary = next[0]?.file;
+        if (primary && onPrimaryImageChange) {
+          const reader = new FileReader();
+          reader.onload = () => onPrimaryImageChange(reader.result as string);
+          reader.readAsDataURL(primary);
+        }
+        return next;
+      });
     },
-    [maxFiles, maxSizeMB, previews.length]
+    [maxFiles, maxSizeMB, onPrimaryImageChange, previews.length]
   );
 
   const removeFile = (index: number) => {
     setPreviews((prev) => {
       URL.revokeObjectURL(prev[index].url);
-      return prev.filter((_, i) => i !== index);
+      const next = prev.filter((_, i) => i !== index);
+      if (onPrimaryImageChange) {
+        const primary = next[0]?.file;
+        if (primary) {
+          const reader = new FileReader();
+          reader.onload = () => onPrimaryImageChange(reader.result as string);
+          reader.readAsDataURL(primary);
+        } else {
+          onPrimaryImageChange(undefined);
+        }
+      }
+      return next;
     });
   };
 
@@ -59,7 +81,7 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5 }: PhotoDropzoneProp
   return (
     <div className="space-y-3">
       {/* Previews */}
-      {previews.length > 0 && (
+      {showPreviews && previews.length > 0 && (
         <div className="flex gap-3 flex-wrap">
           {previews.map((p, i) => (
             <div key={p.url} className="relative group">
