@@ -29,6 +29,7 @@ export default function PostSubproductPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [frecuencia, setFrecuencia] = useState("Una vez");
+  const [imageUrl, setImageUrl] = useState<string>();
 
   const {
     register,
@@ -55,6 +56,7 @@ export default function PostSubproductPage() {
         unidad_volumen: values.unidad_volumen as UnidadVolumen,
         municipio: values.municipio,
         frecuencia: frecuencia,
+        image_url: imageUrl,
       });
       setSuccess(true);
       reset();
@@ -236,9 +238,18 @@ export default function PostSubproductPage() {
             </FormField>
 
             {/* Grid row 5: Foto del material */}
-            <div>
-              <label className="field-label">Foto del material</label>
-              <PhotoDropzone maxFiles={3} maxSizeMB={5} />
+            <div className="grid gap-4 sm:grid-cols-[1fr_192px] sm:items-end">
+              <div>
+                <label className="field-label">Foto del material</label>
+                <PhotoDropzone maxFiles={3} maxSizeMB={5} onPrimaryImageChange={setImageUrl} showPreviews={false} />
+              </div>
+              <div className="flex h-48 w-full items-center justify-center overflow-hidden rounded-xl bg-[#cce9df] sm:w-48">
+                {imageUrl ? (
+                  <img src={imageUrl} alt="Vista previa del material" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-center text-xs font-semibold text-[#00805b]">Vista previa</span>
+                )}
+              </div>
             </div>
           </div>
 
