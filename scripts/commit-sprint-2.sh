@@ -1,37 +1,34 @@
 #!/usr/bin/env bash
-# Divide los cambios pendientes del sprint 2 en ramas encadenadas por HU.
-# Ejecutar desde la raiz del repositorio con los cambios sin commitear:
+# Actualiza las ramas de los dos primeros sprints con los cambios pendientes.
+# Ejecutar desde la raiz del repositorio:
 #   bash scripts/commit-sprint-2.sh
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-BASE_BRANCH="$(git branch --show-current)"
-if [[ -z "$BASE_BRANCH" ]]; then
-  echo "Error: no se pudo determinar la rama base." >&2
+BASE_BRANCH="feature/hu-01-02-03-registro-ui"
+BRANCH_HU07="feature/hu-07-publicar-subproducto"
+BRANCH_HU08="feature/hu-08-fotografia-subproducto"
+BRANCH_HU09="feature/hu-09-catalogo-subproductos"
+BRANCH_HU10="feature/hu-10-detalle-subproducto"
+BRANCH_HU11="feature/hu-11-actualizar-subproducto"
+
+for branch in "$BASE_BRANCH" "$BRANCH_HU07" "$BRANCH_HU08" "$BRANCH_HU09" "$BRANCH_HU10" "$BRANCH_HU11"; do
+  git show-ref --verify --quiet "refs/heads/$branch" || {
+    echo "Error: no existe la rama '$branch'." >&2
+    exit 1
+  }
+done
+
+if [[ "$(git branch --show-current)" != "$BRANCH_HU11" ]]; then
+  echo "Error: ejecuta el script desde '$BRANCH_HU11' para conservar los cambios actuales." >&2
   exit 1
 fi
-
-BRANCHES=(
-  "feature/hu-07-publicar-subproducto"
-  "feature/hu-08-fotografia-subproducto"
-  "feature/hu-09-catalogo-subproductos"
-  "feature/hu-10-detalle-subproducto"
-  "feature/hu-11-actualizar-subproducto"
-)
-
-for branch in "${BRANCHES[@]}"; do
-  if git show-ref --verify --quiet "refs/heads/$branch"; then
-    echo "Error: la rama '$branch' ya existe. No se realizaron operaciones." >&2
-    exit 1
-  fi
-done
 
 commit_paths() {
   local message="$1"
   shift
-
   git add -A -- "$@"
   if git diff --cached --quiet; then
     echo "Error: no hay cambios preparados para: $message" >&2
@@ -40,63 +37,68 @@ commit_paths() {
   git commit -m "$message"
 }
 
-echo "Rama base: $BASE_BRANCH"
-echo "Creando ${BRANCHES[0]}..."
-git checkout -b "${BRANCHES[0]}"
-
-# HU-07 incluye la publicación y las pantallas compartidas que llegaron junto con
-# este lote de trabajo. La reorganización documental se conserva en este primer
-# commit para que las ramas posteriores hereden un repositorio consistente.
-commit_paths "feat(HU-07): publicar subproductos y preparar flujo del sprint 2" \
-  README.md \
-  docs \
-  scripts/commit-sprint-2.sh \
-  frontend/src/api/client.ts \
-  frontend/src/api/mockClient.ts \
-  frontend/src/types/index.ts \
+# Primero se confirma el ajuste común que sí existe en la rama base.
+commit_paths "chore(HU-01-03): actualizar identidad y pantallas compartidas" \
+  .gitignore \
+  frontend/src/components/layout/AppShell.tsx \
+  frontend/src/components/ui/Banner.tsx \
   frontend/src/components/ui/RenduLogo.tsx \
-  frontend/src/img \
-  frontend/src/pages/CommunicationPage.tsx \
-  frontend/src/pages/LoginPage.tsx \
-  frontend/src/pages/MatchingPage.tsx \
-  frontend/src/pages/PostSubproductPage.tsx \
-  frontend/src/pages/PreRegisterPage.tsx \
-  frontend/src/pages/RegistroEmpresaPage.tsx \
-  frontend/src/pages/RegistroPersonaPage.tsx \
+  frontend/src/index.css \
+  frontend/src/pages/HomePage.tsx \
   frontend/src/pages/Splash1Page.tsx \
   frontend/src/pages/Splash2Page.tsx \
   frontend/src/pages/Splash3Page.tsx \
   frontend/src/pages/SplashPage.tsx
 
-echo "Creando ${BRANCHES[1]} desde ${BRANCHES[0]}..."
-git checkout -b "${BRANCHES[1]}"
-# PhotoDropzone ya estaba implementado en la base HU-03-06; se deja un commit
-# explicito para documentar que HU-08 queda cubierta en esta cadena.
-git commit --allow-empty -m "feat(HU-08): agregar fotografia al subproducto"
+# El resto queda temporalmente guardado mientras se recorre la cadena.
+git stash push --include-untracked --message "rendu-sprint-updates-$(date +%s)"
+SHARED_COMMIT="$(git rev-parse HEAD)"
 
-echo "Creando ${BRANCHES[2]} desde ${BRANCHES[1]}..."
-git checkout -b "${BRANCHES[2]}"
-commit_paths "feat(HU-09): consultar catalogo de subproductos" \
-  frontend/src/components/ui/SubproductCard.tsx \
-  frontend/src/pages/CatalogPage.tsx
+git checkout "$BASE_BRANCH"
+git cherry-pick "$SHARED_COMMIT"
 
-echo "Creando ${BRANCHES[3]} desde ${BRANCHES[2]}..."
-git checkout -b "${BRANCHES[3]}"
-commit_paths "feat(HU-10): consultar detalle del subproducto" \
+git checkout "$BRANCH_HU07"
+git merge --no-edit --no-ff "$BASE_BRANCH"
+git stash pop
+commit_paths "feat(HU-07): publicar subproductos" \
+  docs/README-desarrollo.md \
+  docs/README-frontend.md \
+  scripts/commit-sprint-2.sh \
+  frontend/src/pages/PostSubproductPage.tsx
+
+git stash push --include-untracked --message "rendu-sprint-updates-$(date +%s)"
+git checkout "$BRANCH_HU08"
+git merge --no-edit --no-ff "$BRANCH_HU07"
+git stash pop
+commit_paths "feat(HU-08): asociar fotografias a subproductos" \
+  frontend/src/api/client.ts \
+  frontend/src/api/mockClient.ts \
+  frontend/src/components/forms/PhotoDropzone.tsx \
+  frontend/src/types/index.ts
+
+git stash push --include-untracked --message "rendu-sprint-updates-$(date +%s)"
+git checkout "$BRANCH_HU09"
+git merge --no-edit --no-ff "$BRANCH_HU08"
+git stash pop
+commit_paths "feat(HU-09): mostrar fotografias en el catalogo" \
+  frontend/src/components/ui/SubproductCard.tsx
+
+git stash push --include-untracked --message "rendu-sprint-updates-$(date +%s)"
+git checkout "$BRANCH_HU10"
+git merge --no-edit --no-ff "$BRANCH_HU09"
+git stash pop
+commit_paths "feat(HU-10): mostrar fotografia en el detalle" \
   frontend/src/pages/SubproductDetailPage.tsx
 
-echo "Creando ${BRANCHES[4]} desde ${BRANCHES[3]}..."
-git checkout -b "${BRANCHES[4]}"
-commit_paths "feat(HU-11): actualizar publicaciones y consultar perfil" \
-  frontend/src/components/layout/AppShell.tsx \
-  frontend/src/pages/HomePage.tsx \
-  frontend/src/router.tsx \
-  frontend/src/pages/ProfilePage.tsx \
+git stash push --include-untracked --message "rendu-sprint-updates-$(date +%s)"
+git checkout "$BRANCH_HU11"
+git merge --no-edit --no-ff "$BRANCH_HU10"
+git stash pop
+commit_paths "feat(HU-11): actualizar fotografia del subproducto" \
   frontend/src/pages/UpdateSubproductPage.tsx
 
 echo
-echo "Cadena creada correctamente:"
-git log --oneline --decorate -6
- echo
+echo "Cadena actualizada correctamente:"
+git log --oneline --decorate --max-count=10
+echo
 echo "Rama actual: $(git branch --show-current)"
-echo "Rama base original: $BASE_BRANCH"
