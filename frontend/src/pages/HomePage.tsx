@@ -3,7 +3,7 @@ import { RenduLogo } from "@/components/ui/RenduLogo";
 
 export default function HomePage() {
   const wireframeScreens = [
-    { name: "splash", path: "/splash", title: "Pantalla Splash (Logo)", desc: "Logo minimalista centrado" },
+    { name: "splash", path: "/splash", title: "Splash", desc: "Pantalla de bienvenida" },
     { name: "splash1", path: "/splash1", title: "Onboarding 1", desc: "Conecta tus subproductos" },
     { name: "splash2", path: "/splash2", title: "Onboarding 2", desc: "Eficiencia del transporte" },
     { name: "splash3", path: "/splash3", title: "Onboarding 3", desc: "Certificación y seguridad" },

@@ -5,7 +5,7 @@ import notifyImg from "@/img/notify.png";
 export function AppShell() {
   const location = useLocation();
 
-  const isStandaloneScreen = [
+  const isStandaloneScreen = location.pathname === "/" || [
     "/splash",
     "/splash1",
     "/splash2",
@@ -25,15 +25,15 @@ export function AppShell() {
     <div className="min-h-screen flex flex-col bg-surface-50">
       {/* ─── Header matching header.png ──────────────────────────── */}
       {!isStandaloneScreen && (
-        <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-surface-200">
-          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 flex items-center justify-between">
+        <header className="sticky top-0 z-40 bg-white shadow-lg border-b border-surface-200 rounded-b-[30px]">
+          <div className="mx-auto grid h-20 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6">
             {/* Left: Rendu Box Logo */}
-            <NavLink to="/catalogo" className="flex items-center gap-2 group">
-              <RenduLogo size="md" showText={false} />
+            <NavLink to="/catalogo" className="flex items-center gap-2 justify-self-start group">
+              <RenduLogo size="header" showText={false} />
             </NavLink>
 
             {/* Center: Action Pills (+ Publicar · ⌂ Catalogo · ↔ Matching) */}
-            <nav className="flex items-center gap-2 sm:gap-3">
+            <nav className="flex items-center gap-2 justify-self-center sm:gap-3">
               {/* + Publicar */}
               <NavLink
                 to="/publicar"
@@ -49,7 +49,7 @@ export function AppShell() {
                 <span>Publicar</span>
               </NavLink>
 
-              {/* ⌂ Catalogo */}
+              {/* Catalogo */}
               <NavLink
                 to="/catalogo"
                 className={({ isActive }) =>
@@ -84,7 +84,7 @@ export function AppShell() {
             </nav>
 
             {/* Right: Bell Notification & User Profile Avatar (leads to /login) */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 justify-self-end">
               {/* Bell Icon using notify.png */}
               <button
                 type="button"
@@ -94,20 +94,20 @@ export function AppShell() {
                 <img
                   src={notifyImg}
                   alt="Notificaciones"
-                  className="h-5 w-5 object-contain"
+                  className="h-12 w-12 object-contain"
                 />
               </button>
 
               {/* User Profile Avatar -> Clicking when not logged in takes user to /login */}
               <Link
                 to="/perfil"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d9d9d9] text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner"
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d9d9d9] text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner"
                 title="Iniciar sesión / Mi cuenta"
                 aria-label="Perfil de usuario"
               >
                 <svg
-                  width="22"
-                  height="22"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#18322d"
