@@ -2,7 +2,7 @@ import iconImg from "@/img/icon.png";
 
 interface RenduLogoProps {
   className?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "header";
   showText?: boolean;
   textColor?: string;
 }
@@ -18,6 +18,7 @@ export function RenduLogo({
     md: { imgClass: "h-8 w-8", font: "text-2xl" },
     lg: { imgClass: "h-12 w-12", font: "text-3xl" },
     xl: { imgClass: "h-24 w-24", font: "text-4xl" },
+    header: { imgClass: "h-20 w-20", font: "text-3xl" },
   }[size];
 
   return (

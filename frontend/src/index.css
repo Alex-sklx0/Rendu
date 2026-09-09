@@ -131,6 +131,11 @@
     @apply flex items-center gap-2 rounded-lg bg-forest-700/5 px-4 py-3 text-sm text-forest-800;
   }
 
+  .banner {
+    border-radius: 6px 6px 30px 30px;
+    box-shadow: 0 14px 32px rgba(22, 33, 26, 0.18);
+  }
+
   /* ─── Badge ────────────────────────────────────────────────────── */
   .badge {
     @apply inline-flex items-center rounded-full border border-surface-200 bg-white

@@ -48,7 +48,7 @@ export async function registrarEmpresa(input: Omit<Empresa, "id">): Promise<Empr
 }
 
 export async function registrarSubproducto(
-  input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string }
+  input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string; image_url?: string }
 ): Promise<Subproducto> {
   return USE_MOCKS
     ? crearSubproductoMock(input)
@@ -87,7 +87,7 @@ export async function getMisPublicaciones(): Promise<SubproductoDetalle[]> {
 
 export async function actualizarSubproducto(
   id: string,
-  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia">>
+  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia" | "image_url">>
 ): Promise<SubproductoDetalle> {
   if (USE_MOCKS) {
     return actualizarSubproductoMock(id, input);

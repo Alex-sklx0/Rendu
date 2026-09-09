@@ -164,7 +164,7 @@ export async function crearEmpresaMock(
 }
 
 export async function crearSubproductoMock(
-  input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string }
+  input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string; image_url?: string }
 ): Promise<Subproducto> {
   const db = loadDB();
   const newId = id();
@@ -198,6 +198,7 @@ export async function crearSubproductoMock(
     empresa: "Mi Empresa",
     municipio: input.municipio,
     emoji: infoFamilia.emoji,
+    image_url: input.image_url,
     descripcion: input.descripcion || "Sin descripción proporcionada.",
     condiciones: "Entrega a convenir con la empresa.",
     frecuencia: input.frecuencia || "Una vez",
@@ -255,7 +256,7 @@ export async function getMisPublicacionesMock(): Promise<SubproductoDetalle[]> {
 
 export async function actualizarSubproductoMock(
   id: string,
-  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia">>
+  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia" | "image_url">>
 ): Promise<SubproductoDetalle> {
   const db = loadDB();
   const item = (db.catalogo ?? DEFAULT_CATALOG).find((subproducto) => subproducto.id === id);

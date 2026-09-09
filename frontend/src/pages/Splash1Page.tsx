@@ -6,7 +6,7 @@ export default function Splash1Page() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef2f0] px-4 py-8">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-lg sm:p-12">
         {/* ── Green Top-Left Corner Accent ──────────────────────────── */}
         <div className="pointer-events-none absolute left-6 top-6 h-14 w-28 rounded-tl-xl border-l-4 border-t-4 border-[#23ce6b]" />
 
@@ -33,7 +33,7 @@ export default function Splash1Page() {
         </div>
 
         {/* ── Footer / Navigation ──────────────────────────────────── */}
-        <div className="mt-10 flex items-center justify-between border-t border-surface-100 pt-6">
+        <div className="mt-10 flex items-center justify-between pt-6">
           <Link
             to="/catalogo"
             className="text-sm font-semibold text-ink-400 hover:text-ink-700"
