@@ -10,9 +10,9 @@ export function Banner({ variant, children }: BannerProps) {
     <div
       role="status"
       className={clsx(
-        "rounded-md border px-4 py-3 text-sm",
+        "banner border px-4 py-3 text-sm",
         variant === "success"
-          ? "border-forest-600 bg-forest-700/5 text-forest-800"
+          ? "border-forest-500 bg-forest-700/5 text-forest-800"
           : "border-signal-error bg-signal-error/5 text-signal-error"
       )}
     >
