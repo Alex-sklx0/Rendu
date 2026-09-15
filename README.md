@@ -1,65 +1,43 @@
-# RENDU — Mercado digital de subproductos industriales
+# RENDU
 
-Prototipo funcional del proyecto RENDU (Proyecto Aplicado en TIC 1, UPB). Ver
-`docs/contexto-proyecto.md` (o el PDF original del equipo) para la problemática completa.
+## Mercado digital de subproductos industriales
 
-## Estructura
+RENDU es una plataforma para conectar empresas del Valle de Aburrá que generan subproductos sólidos industriales con organizaciones que pueden recogerlos, transformarlos o reincorporarlos a otros procesos productivos.
 
-```
-rendu-platform/
-├── AGENTS.md                     # contexto para agentes de IA (Antigravity, etc.)
-├── .agents/skills/rendu-frontend # skill de Antigravity con el alcance de David
-├── docker-compose.yml            # levanta TODO el stack para desarrollo local
-├── frontend/                     # React + TS + Vite — propiedad de David
-├── backend/                      # Monolito MVC Express — propiedad de Carolina
-│   ├── src/
-│   │   ├── server.js             # arranque de Express
-│   │   ├── config/db.js          # conexión a Postgres
-│   │   ├── routes/               # un archivo por recurso
-│   │   ├── controllers/          # lógica de request/response
-│   │   ├── models/               # queries SQL
-│   │   ├── services/             # lógica de negocio
-│   │   └── middlewares/          # errorHandler, validate
-│   ├── package.json
-│   └── Dockerfile
-├── database/postgres/            # esquema y migraciones — propiedad de Natalia
-└── docs/api-contract.md          # contrato de API compartido frontend ↔ backend
-```
+El proyecto busca facilitar el intercambio de materiales que todavía tienen valor, pero que normalmente terminan como residuos. Para ello, una empresa puede registrar qué material tiene disponible, describir sus condiciones y ponerlo en contacto con posibles interesados.
 
-## Cómo levantar todo el proyecto (cualquier miembro del equipo)
+Es un proyecto académico de la UPB, desarrollado como un prototipo funcional de una plataforma de economía circular. En su alcance actual no incluye pagos, logística automatizada ni matching basado en inteligencia artificial.
 
-Requisitos: Docker + Docker Compose.
+## ¿Cómo funciona?
 
-```bash
-docker compose up --build
-```
+El flujo básico de RENDU es:
 
-Esto levanta:
-- **Frontend** en http://localhost:5173
-- **Backend** en http://localhost:8000 (monolito MVC, `GET /health` disponible)
-- **PostgreSQL** en `localhost:5432` (usuario/clave `rendu`/`rendu`, base `rendu`)
+1. Una persona se registra y define su tipo de participación.
+2. Una empresa registra sus datos o una persona continúa como reciclador o transformador.
+3. El generador publica un subproducto con su familia, cantidad, ubicación, descripción y fotografía.
+4. Los usuarios consultan el catálogo y filtran los materiales disponibles.
+5. Cada publicación tiene una vista detallada para revisar sus características y contactar a la organización generadora.
+6. El generador puede consultar sus publicaciones y actualizar su información.
 
-El frontend **no depende de que el backend esté implementado**: por defecto usa
-datos simulados en el navegador (`VITE_USE_MOCKS=true`). Cuando el backend real esté listo,
-cambia esa variable a `false` en `docker-compose.yml` (o en `frontend/.env`).
+## Actores de la plataforma
 
-## Cómo trabajar cada quien por separado
+- **Generador:** publica subproductos y puede consultar precios para comparar sus opciones.
+- **Transformador:** busca materiales para comprarlos y puede consultar precios.
+- **Reciclador:** consulta el catálogo para identificar materiales que puede recoger y posteriormente comercializar; no compra dentro de la plataforma.
+- **ECA:** puede participar como organización de aprovechamiento y clasificación.
 
-- **David (frontend)**: no necesitas Docker para el día a día — `cd frontend && npm install &&
-  npm run dev`. Lee `.agents/skills/rendu-frontend/SKILL.md` antes de empezar.
-- **Carolina (backend)**: `cd backend && npm install && npm run dev`. Implementa los controllers
-  en `src/controllers/` siguiendo `/docs/api-contract.md`. Los models van en `src/models/` y
-  la lógica de negocio pura en `src/services/`.
-- **Natalia (base de datos)**: trabaja en `/database/postgres`. El archivo
-  `init/00-schema.sql.example` es un borrador — renómbralo a `.sql` cuando esté validado y
-  Postgres lo ejecutará automáticamente la próxima vez que se recree el volumen
-  (`docker compose down -v && docker compose up`).
-- **Miguel (QA/documentación)**: usa `docker compose up` para probar el flujo end-to-end una vez
-  el backend tenga lógica real; mientras tanto puede probar el frontend solo con los mocks.
+Una persona puede participar como reciclador o transformador. Una empresa puede registrarse como generadora o transformadora. Las reglas de precios, disponibilidad y contacto se aplicarán según el tipo de actor y el estado de cada publicación.
 
-## Convenciones
+## Qué se está construyendo
 
-- Un repositorio (monorepo), una rama por historia de usuario (`feature/hu-03-registrar-subproducto`),
-  PR contra `main` revisado por al menos un compañero.
-- Cualquier cambio en la forma de un request/response se documenta en `docs/api-contract.md`
-  en el mismo PR que lo introduce.
+El prototipo trabaja principalmente en estos módulos:
+
+- Registro de usuarios y empresas.
+- Publicación y clasificación de subproductos.
+- Catálogo con búsqueda y filtros por familia y municipio.
+- Vista detallada de cada publicación.
+- Gestión de publicaciones propias y actualización de información.
+- Manifestación de interés y contacto entre organizaciones.
+- Base para matching entre oferta y demanda.
+
+Las familias de material contempladas son papel y cartón, plásticos, vidrio, metales, textil y madera. La cobertura geográfica inicial corresponde a los municipios del Valle de Aburrá.
