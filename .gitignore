@@ -36,6 +36,8 @@ tsconfig.tsbuildinfo
 .env
 .env.*
 !.env.example        # mantener el ejemplo en el repo
+!**/.env.example
+
 
 # ── Docker (datos locales) ────────────────────────────────────
 # Los volúmenes y datos de Postgres no van al repo
