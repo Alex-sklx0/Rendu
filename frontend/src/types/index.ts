@@ -41,10 +41,12 @@ export type SubproductoCatalogo = {
   volumen_disponible: number;
   unidad_volumen: string;
   empresa: string;
+  usuario?: string;
   municipio: string;
   emoji: string;
   image_url?: string;
   destacado?: boolean;
+  disponible?: boolean;
 };
 
 export type SubproductoDetalle = SubproductoCatalogo & {
@@ -53,5 +55,6 @@ export type SubproductoDetalle = SubproductoCatalogo & {
   frecuencia?: string;
   fecha_publicacion?: string;
   medio_contacto?: string;
+  disponible?: boolean;
 };
 

@@ -1,18 +1,37 @@
 import type { Empresa, Subproducto, SubproductoCatalogo, SubproductoDetalle, Usuario } from "@/types";
-import {
-  crearEmpresaMock,
-  crearSubproductoMock,
-  crearUsuarioMock,
-  getCatalogoMock,
-  getMisPublicacionesMock,
-  getSubproductoDetalleMock,
-  actualizarSubproductoMock,
-} from "./mockClient";
+import { FAMILIAS_MATERIAL } from "@/lib/constants";
 
-// Punto único de acceso a datos. Los componentes nunca llaman fetch/mockClient directamente:
-// siempre pasan por aquí, así que cuando el backend real esté listo solo se edita este archivo.
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== "false";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+// Punto único de acceso a datos que interactúa directamente con la API backend en la nube / local.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api";
+
+type ApiResponse<T> = {
+  ok: boolean;
+  error?: string;
+  [key: string]: unknown;
+} & T;
+
+type BackendSubproducto = Omit<SubproductoDetalle, "image_url"> & { foto_url?: string | null };
+
+function mapSubproducto(item: BackendSubproducto): SubproductoDetalle {
+  const familia = item.familia || FAMILIAS_MATERIAL.find((option) => option.id === item.id_familia)?.nombre || item.id_familia;
+  const empresa = typeof item.empresa === "object" && item.empresa !== null
+    ? (item.empresa as { nombre?: string }).nombre || "Empresa"
+    : item.empresa;
+  return {
+    ...item,
+    familia,
+    empresa,
+    image_url: item.foto_url ?? undefined,
+    emoji: "",
+  };
+}
+
+function unwrap<T>(response: ApiResponse<T>, key: string): T {
+  if (!response.ok) throw new Error(response.error || "La API devolvió un error.");
+  const value = response[key];
+  if (value === undefined) throw new Error(`La API no devolvió la propiedad '${key}'.`);
+  return value as T;
+}
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -40,19 +59,29 @@ export async function registrarUsuario(input: {
   email: string;
   password: string;
 }): Promise<Usuario> {
-  return USE_MOCKS ? crearUsuarioMock(input) : post<Usuario>("/usuarios", input);
+  const response = await post<ApiResponse<Usuario>>("/usuarios", input);
+  return unwrap(response, "usuario");
+}
+
+export async function loginUsuario(input: {
+  email: string;
+  password: string;
+}): Promise<{ usuario: Usuario & { id_empresa?: string; nombre?: string }; empresa?: Empresa }> {
+  const response = await post<ApiResponse<{ usuario: Usuario & { id_empresa?: string; nombre?: string }; empresa?: Empresa }>>("/usuarios/login", input);
+  if (!response.ok) throw new Error(response.error || "Error al iniciar sesión.");
+  return { usuario: response.usuario, empresa: response.empresa };
 }
 
 export async function registrarEmpresa(input: Omit<Empresa, "id">): Promise<Empresa> {
-  return USE_MOCKS ? crearEmpresaMock(input) : post<Empresa>("/empresas", input);
+  const response = await post<ApiResponse<Empresa>>("/empresas", input);
+  return unwrap(response, "empresa");
 }
 
 export async function registrarSubproducto(
   input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string; image_url?: string }
 ): Promise<Subproducto> {
-  return USE_MOCKS
-    ? crearSubproductoMock(input)
-    : post<Subproducto>("/subproductos", input);
+  const response = await post<ApiResponse<Subproducto>>("/subproductos", input);
+  return unwrap(response, "subproducto");
 }
 
 export async function getCatalogo(params?: {
@@ -60,45 +89,57 @@ export async function getCatalogo(params?: {
   id_familia?: string;
   municipio?: string;
 }): Promise<SubproductoCatalogo[]> {
-  if (USE_MOCKS) {
-    return getCatalogoMock(params);
-  }
   const queryParams = new URLSearchParams();
   if (params?.query) queryParams.set("q", params.query);
   if (params?.id_familia) queryParams.set("familia", params.id_familia);
   if (params?.municipio) queryParams.set("municipio", params.municipio);
   const qs = queryParams.toString();
-  return get<SubproductoCatalogo[]>(`/catalogo${qs ? `?${qs}` : ""}`);
+  const response = await get<ApiResponse<BackendSubproducto[]>>(`/catalogo${qs ? `?${qs}` : ""}`);
+  return unwrap(response, "subproductos").map(mapSubproducto);
 }
 
 export async function getSubproductoDetalle(id: string): Promise<SubproductoDetalle> {
-  if (USE_MOCKS) {
-    return getSubproductoDetalleMock(id);
-  }
-  return get<SubproductoDetalle>(`/subproductos/${id}`);
+  const response = await get<ApiResponse<BackendSubproducto>>(`/subproductos/${id}`);
+  return mapSubproducto(unwrap(response, "subproducto"));
 }
 
-export async function getMisPublicaciones(): Promise<SubproductoDetalle[]> {
-  if (USE_MOCKS) {
-    return getMisPublicacionesMock();
-  }
-  return get<SubproductoDetalle[]>("/subproductos/mis-publicaciones");
+export async function getMisPublicaciones(id_empresa?: string): Promise<SubproductoDetalle[]> {
+  const url = id_empresa ? `/subproductos/mis-publicaciones?id_empresa=${id_empresa}` : "/subproductos/mis-publicaciones";
+  const response = await get<ApiResponse<BackendSubproducto[]>>(url);
+  return unwrap(response, "publicaciones").map(mapSubproducto);
 }
 
 export async function actualizarSubproducto(
   id: string,
-  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia" | "image_url">>
+  input: Partial<Pick<SubproductoDetalle, "nombre" | "descripcion" | "volumen_disponible" | "unidad_volumen" | "municipio" | "frecuencia" | "image_url" | "disponible">>
 ): Promise<SubproductoDetalle> {
-  if (USE_MOCKS) {
-    return actualizarSubproductoMock(id, input);
-  }
-  return fetch(`${API_BASE_URL}/subproductos/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/subproductos/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
-  }).then(async (res) => {
-    if (!res.ok) throw new Error("No se pudo actualizar el subproducto.");
-    return res.json() as Promise<SubproductoDetalle>;
   });
+  const body = await response.json() as ApiResponse<BackendSubproducto>;
+  if (!response.ok) throw new Error(body.error || "No se pudo actualizar el subproducto.");
+  return mapSubproducto(unwrap(body, "subproducto"));
+}
+
+export async function eliminarSubproducto(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/subproductos/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || "No se pudo eliminar el subproducto.");
+  }
+}
+
+export async function eliminarCuenta(idUsuario: string | number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/usuarios/${idUsuario}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || "No se pudo eliminar la cuenta.");
+  }
 }
 

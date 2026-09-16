@@ -21,6 +21,8 @@ export function AppShell() {
     "/comunicacion",
   ].some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
+  const isAuthenticated = typeof window !== "undefined" && Boolean(localStorage.getItem("isAuthenticated"));
+
   return (
     <div className="min-h-screen flex flex-col bg-surface-50">
       {/* ─── Header matching header.png ──────────────────────────── */}
@@ -36,7 +38,7 @@ export function AppShell() {
             <nav className="flex items-center gap-2 justify-self-center sm:gap-3">
               {/* + Publicar */}
               <NavLink
-                to="/publicar"
+                to={isAuthenticated ? "/publicar" : "/login"}
                 className={({ isActive }) =>
                   `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
                     isActive
@@ -83,7 +85,7 @@ export function AppShell() {
               </NavLink>
             </nav>
 
-            {/* Right: Bell Notification & User Profile Avatar (leads to /login) */}
+            {/* Right: Bell Notification & User Profile Avatar */}
             <div className="flex items-center gap-3 justify-self-end">
               {/* Bell Icon using notify.png */}
               <button
@@ -98,11 +100,11 @@ export function AppShell() {
                 />
               </button>
 
-              {/* User Profile Avatar -> Clicking when not logged in takes user to /login */}
+              {/* User Profile Avatar -> Clicking when logged in takes to /perfil, else /login */}
               <Link
-                to="/perfil"
+                to={isAuthenticated ? "/perfil" : "/login"}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d9d9d9] text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner"
-                title="Iniciar sesión / Mi cuenta"
+                title={isAuthenticated ? "Mi cuenta / Perfil" : "Iniciar sesión"}
                 aria-label="Perfil de usuario"
               >
                 <svg
