@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
+import { loginUsuario } from "@/api/client";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -8,14 +9,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email || !password) {
       setError("Por favor completa tu correo y contraseña.");
       return;
     }
-    // Demo login -> go to catalog
-    navigate("/catalogo");
+    setError(null);
+    try {
+      const res = await loginUsuario({ email, password });
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("user", JSON.stringify({
+        id: res.usuario.id,
+        email: res.usuario.email,
+        nombre: res.usuario.nombre || res.empresa?.nombre || email.split('@')[0],
+        id_empresa: res.usuario.id_empresa || res.empresa?.id || null,
+      }));
+      navigate("/catalogo");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
+    }
   }
 
   return (
@@ -95,14 +108,7 @@ export default function LoginPage() {
           >
             Registrar mi empresa
           </Link>
-          <div className="text-center">
-            <Link
-              to="/pre_register"
-              className="text-xs font-semibold text-ink-500 hover:text-[#23ce6b] transition-colors"
-            >
-              ¿No tienes cuenta? <span className="underline">Regístrate aquí</span>
-            </Link>
-          </div>
+         
         </div>
       </div>
     </div>

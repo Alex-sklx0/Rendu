@@ -1,15 +1,21 @@
 {
-  "name": "rendu-backend",
-  "version": "0.1.0",
-  "description": "Backend monolito MVC de RENDU — marketplace de subproductos industriales",
+  "name": "rendu",
+  "version": "1.0.0",
   "type": "module",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
-  },
+  "dev": "node --watch server.js",
+  "start": "node server.js"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "pg": "^8.12.0"
+    "@supabase/supabase-js": "^2.115.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   }
 }

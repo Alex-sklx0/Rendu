@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
-import { registrarUsuario } from "@/api/client";
+import { registrarUsuario, registrarEmpresa } from "@/api/client";
+import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 
 export default function RegistroPersonaPage() {
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [cedula, setCedula] = useState("");
-  const [ubicacion, setUbicacion] = useState("Medellín, Antioquia");
+  const [municipio, setMunicipio] = useState("Medellín");
   const [tipoActividad, setTipoActividad] = useState("Reciclador");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +25,22 @@ export default function RegistroPersonaPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await registrarUsuario({ email, password });
+      const user = await registrarUsuario({ email, password });
+      const empresa = await registrarEmpresa({
+        id_usuario: user.id,
+        nombre: nombre.trim() || email.split("@")[0],
+        nit: cedula.trim() || `CC-${Date.now()}`,
+        municipio,
+        tipo_actor: "reciclador",
+      }).catch(() => null);
+
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("user", JSON.stringify({
+        id: user.id,
+        email: user.email,
+        nombre: empresa?.nombre || nombre || email.split("@")[0],
+        id_empresa: empresa?.id || null,
+      }));
       navigate("/communication");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar.");
@@ -63,7 +79,7 @@ export default function RegistroPersonaPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="nombre">
-                Nombre de empresa
+                Nombre completo
               </label>
               <input
                 id="nombre"
@@ -89,20 +105,31 @@ export default function RegistroPersonaPage() {
             </div>
           </div>
 
-          {/* Row 2: Ubicación & Tipo de actividad */}
+          {/* Row 2: Municipio & Tipo de actividad */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="ubicacion">
-                Ubicación
+              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="municipio">
+                Municipio
               </label>
-              <input
-                id="ubicacion"
-                type="text"
-                value={ubicacion}
-                onChange={(e) => setUbicacion(e.target.value)}
-                placeholder="Medellín, Antioquia"
-                className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
-              />
+              <div className="relative">
+                <select
+                  id="municipio"
+                  value={municipio}
+                  onChange={(e) => setMunicipio(e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 pr-8 text-xs text-ink-900 focus:border-[#23ce6b] focus:outline-none transition-colors"
+                >
+                  {MUNICIPIOS_VALLE_ABURRA.map((mun) => (
+                    <option key={mun} value={mun}>
+                      {mun}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-ink-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="tipoActividad">
