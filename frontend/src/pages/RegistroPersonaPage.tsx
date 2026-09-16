@@ -25,6 +25,8 @@ export default function RegistroPersonaPage() {
     setError(null);
     try {
       await registrarUsuario({ email, password });
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("user", JSON.stringify({ email, nombre }));
       navigate("/communication");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar.");

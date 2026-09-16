@@ -32,6 +32,8 @@ export default function RegistroEmpresaPage() {
         municipio: ubicacion.split(",")[0].trim(),
         tipo_actor: tipoEmpresa === "Generador" ? "empresa_generadora" : "empresa_transformadora",
       });
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("user", JSON.stringify({ email, nombre: nombreEmpresa }));
       navigate("/communication");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar la empresa.");

@@ -23,7 +23,7 @@ export async function registrarUsuario(req, res, next) {
     const { data, error } = await supabase
       .from('usuarios')
       .insert({ email: email.trim().toLowerCase(), password_hash: await bcrypt.hash(password, 10) })
-      .select('id, email, rol, fecha_registro')
+      .select('id, email, fecha_registro')
       .single();
 
     if (error) {

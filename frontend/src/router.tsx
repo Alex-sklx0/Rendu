@@ -1,7 +1,6 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import HomePage from "@/pages/HomePage";
-import RegisterPage from "@/pages/RegisterPage";
 import RegisterSubproductPage from "@/pages/RegisterSubproductPage";
 import CatalogPage from "@/pages/CatalogPage";
 import SubproductDetailPage from "@/pages/SubproductDetailPage";
@@ -18,6 +17,7 @@ import CommunicationPage from "@/pages/CommunicationPage";
 import MatchingPage from "@/pages/MatchingPage";
 import ProfilePage from "@/pages/ProfilePage";
 import UpdateSubproductPage from "@/pages/UpdateSubproductPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {
@@ -48,8 +48,10 @@ export const router = createBrowserRouter([
       { path: "publicar", element: <PostSubproductPage /> },
       { path: "matching", element: <MatchingPage /> },
 
-      { path: "registro", element: <RegisterPage /> },
+      { path: "registro", element: <Navigate to="/pre_register" replace /> },
       { path: "subproductos/nuevo", element: <RegisterSubproductPage /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ]);
+

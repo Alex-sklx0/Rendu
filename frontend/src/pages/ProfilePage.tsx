@@ -1,44 +1,89 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getMisPublicaciones } from "@/api/client";
 import type { SubproductoDetalle } from "@/types";
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const [publicaciones, setPublicaciones] = useState<SubproductoDetalle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<{ email?: string; nombre?: string } | null>(null);
 
   useEffect(() => {
+    const isAuth = localStorage.getItem("isAuthenticated");
+    if (!isAuth) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUserData(JSON.parse(storedUser));
+      } catch {
+        // Ignorar error de parseo
+      }
+    }
+
     getMisPublicaciones()
       .then(setPublicaciones)
       .finally(() => setLoading(false));
-  }, []);
+  }, [navigate]);
+
+  function handleLogout() {
+    localStorage.removeItem("user");
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("token");
+    navigate("/catalogo");
+  }
 
   const totalKg = publicaciones.reduce(
     (total, publicacion) => total + (publicacion.unidad_volumen === "kg" ? publicacion.volumen_disponible : 0),
     0,
   );
 
+  const displayName = userData?.nombre || userData?.email?.split('@')[0] || "Mi perfil";
+  const displayEmail = userData?.email || "contacto@fibretex.co";
+
   return (
     <div className="mx-auto max-w-6xl pb-16">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">Mi nombre</h1>
+        <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">{displayName}</h1>
         <p className="mt-1 text-sm text-ink-500">Gestiona publicaciones, contactos e historial.</p>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1.05fr_1.05fr_0.7fr]">
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
           <div className="flex items-center gap-3 border-b border-surface-100 pb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dff4ed] font-bold text-[#00805b]">F</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dff4ed] font-bold text-[#00805b]">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
             <div>
-              <h2 className="font-bold text-ink-900">Fibretex</h2>
+              <h2 className="font-bold text-ink-900">{displayName}</h2>
               <p className="text-xs text-ink-500">Textil · Medellín</p>
             </div>
           </div>
           <dl className="mt-3 space-y-2 text-xs text-ink-500">
             <div><dt className="inline font-bold text-ink-700">Tipo: </dt><dd className="inline">Generador y aprovechador</dd></div>
-            <div><dt className="inline font-bold text-ink-700">Contacto: </dt><dd className="inline">contacto@fibretex.co</dd></div>
+            <div><dt className="inline font-bold text-ink-700">Contacto: </dt><dd className="inline">{displayEmail}</dd></div>
           </dl>
-          <button type="button" className="mt-3 rounded-md border border-[#00805b] px-3 py-1.5 text-xs font-bold text-[#00805b]">Editar perfil</button>
+          <div className="mt-4 flex items-center gap-2">
+            <button type="button" className="rounded-md border border-[#00805b] px-3 py-1.5 text-xs font-bold text-[#00805b] hover:bg-[#00805b]/5 transition-colors">
+              Editar perfil
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 hover:border-red-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
         </section>
 
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">

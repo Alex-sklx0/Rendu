@@ -14,6 +14,8 @@ export default function LoginPage() {
       setError("Por favor completa tu correo y contraseña.");
       return;
     }
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("user", JSON.stringify({ email }));
     // Demo login -> go to catalog
     navigate("/catalogo");
   }

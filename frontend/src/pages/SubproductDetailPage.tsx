@@ -139,9 +139,9 @@ export default function SubproductDetailPage() {
               {subproducto.nombre}
             </h1>
 
-            {/* Company */}
+            {/* Company / Publisher */}
             <p className="mt-1 text-sm font-medium text-ink-500">
-              Publicación de <span className="font-semibold text-ink-800">{subproducto.empresa}</span>
+              Publicación de <span className="font-semibold text-ink-800">{subproducto.usuario || subproducto.empresa}</span>
             </p>
 
             {/* Stats Boxes */}

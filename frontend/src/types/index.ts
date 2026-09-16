@@ -41,6 +41,7 @@ export type SubproductoCatalogo = {
   volumen_disponible: number;
   unidad_volumen: string;
   empresa: string;
+  usuario?: string;
   municipio: string;
   emoji: string;
   image_url?: string;
