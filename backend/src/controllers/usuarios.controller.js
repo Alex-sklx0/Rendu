@@ -58,16 +58,15 @@ export async function loginUsuario(req, res, next) {
       return res.status(401).json({ ok: false, error: 'Correo o contraseña incorrectos.' });
     }
 
-    const { data: empresa } = await supabase
-      .from('empresas')
-      .select('id, nombre, id_usuario')
-      .eq('id_usuario', user.id)
-      .maybeSingle();
+    const [{ data: empresa }, { data: persona }] = await Promise.all([
+      supabase.from('empresas').select('id, nombre, id_usuario').eq('id_usuario', user.id).maybeSingle(),
+      supabase.from('personas').select('id, nombre, id_usuario').eq('id_usuario', user.id).maybeSingle(),
+    ]);
 
     const userData = {
       id: user.id,
       email: user.email,
-      nombre: empresa?.nombre || user.email.split('@')[0],
+      nombre: empresa?.nombre || persona?.nombre || user.email.split('@')[0],
       id_empresa: empresa?.id || null,
     };
 
@@ -90,6 +89,7 @@ export async function eliminarUsuario(req, res, next) {
       await supabase.from('subproductos').delete().eq('id_empresa', empresa.id);
       await supabase.from('empresas').delete().eq('id', empresa.id);
     }
+    await supabase.from('personas').delete().eq('id_usuario', id);
     const { error } = await supabase.from('usuarios').delete().eq('id', id);
     if (error) throw error;
     return res.json({ ok: true, mensaje: 'Cuenta eliminada exitosamente' });

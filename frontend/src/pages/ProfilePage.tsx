@@ -32,10 +32,11 @@ export default function ProfilePage() {
       }
     }
 
-    Promise.all([
-      getMisPublicaciones(companyId),
-      getCatalogo(),
-    ])
+    const pubsPromise: Promise<SubproductoDetalle[]> = companyId
+      ? getMisPublicaciones(companyId)
+      : Promise.resolve([]);
+
+    Promise.all([pubsPromise, getCatalogo()])
       .then(([misPubs, cat]) => {
         setPublicaciones(misPubs);
         setCatalogo(cat);

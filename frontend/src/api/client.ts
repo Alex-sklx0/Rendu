@@ -77,6 +77,18 @@ export async function registrarEmpresa(input: Omit<Empresa, "id">): Promise<Empr
   return unwrap(response, "empresa");
 }
 
+export async function registrarPersona(input: {
+  id_usuario: string | number;
+  nombre: string;
+  cedula?: string;
+  municipio?: string;
+  id_municipio?: number;
+  tipo_actor?: string;
+}): Promise<{ id: number; nombre: string; id_usuario: number }> {
+  const response = await post<ApiResponse<{ id: number; nombre: string; id_usuario: number }>>("/personas", input);
+  return unwrap(response, "persona");
+}
+
 export async function registrarSubproducto(
   input: Omit<Subproducto, "id" | "estado_publicacion" | "disponible"> & { frecuencia?: string; image_url?: string }
 ): Promise<Subproducto> {

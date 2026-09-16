@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
-import { registrarUsuario, registrarEmpresa } from "@/api/client";
+import { registrarUsuario, registrarEmpresa, registrarPersona } from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 
 export default function RegistroPersonaPage() {
@@ -25,21 +25,34 @@ export default function RegistroPersonaPage() {
     setIsSubmitting(true);
     setError(null);
     try {
+      const nombreFinal = nombre.trim() || email.split("@")[0];
       const user = await registrarUsuario({ email, password });
+
+      // Insertar en tabla `personas` con datos reales del reciclador
+      await registrarPersona({
+        id_usuario: user.id,
+        nombre: nombreFinal,
+        cedula: cedula.trim() || undefined,
+        municipio,
+        tipo_actor: tipoActividad,
+      });
+
+      // Crear también en `empresas` para que pueda publicar subproductos
+      // (subproductos.id_empresa → empresas.id, no existe FK a personas)
       const empresa = await registrarEmpresa({
         id_usuario: user.id,
-        nombre: nombre.trim() || email.split("@")[0],
-        nit: cedula.trim() || `CC-${Date.now()}`,
+        nombre: nombreFinal,
+        nit: cedula.trim() ? `CC-${cedula.trim()}` : `CC-${Date.now()}`,
         municipio,
-        tipo_actor: "reciclador",
-      }).catch(() => null);
+        tipo_actor: tipoActividad as import("@/lib/constants").TipoActor,
+      });
 
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({
         id: user.id,
         email: user.email,
-        nombre: empresa?.nombre || nombre || email.split("@")[0],
-        id_empresa: empresa?.id || null,
+        nombre: nombreFinal,
+        id_empresa: empresa.id,
       }));
       navigate("/communication");
     } catch (err) {

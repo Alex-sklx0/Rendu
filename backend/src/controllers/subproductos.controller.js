@@ -87,8 +87,6 @@ async function present(item) {
     userEmail = userRes.data?.email;
   }
 
-  const publicador = company.data?.nombre || userEmail || 'Usuario';
-
   return {
     ...item,
     id_familia: String(item.id_familia_material),
@@ -96,7 +94,7 @@ async function present(item) {
     unidad_volumen: unit.data?.abreviatura || unit.data?.nombre || 'unidad',
     municipio: municipality.data?.nombre || 'Sin municipio',
     empresa: company.data?.nombre || 'Empresa',
-    usuario: publicador,
+    usuario: userEmail || company.data?.nombre || 'Usuario',
     image_url: item.foto_url || undefined,
     emoji: '',
     estado_publicacion: 'publicado',
@@ -122,11 +120,7 @@ export async function registrarSubproducto(req, res, next) {
       companyId = Number(id_empresa);
     }
     if (!companyId) {
-      const { data: firstCompany } = await supabase.from('empresas').select('id').order('id', { ascending: true }).limit(1).maybeSingle();
-      companyId = firstCompany?.id;
-    }
-    if (!companyId) {
-      return res.status(400).json({ ok: false, error: 'No existe ninguna empresa registrada para asignar la publicación.' });
+      return res.status(400).json({ ok: false, error: 'No se pudo identificar la empresa del publicador. Por favor vuelve a iniciar sesión.' });
     }
 
     const safeFotoUrl = (image_url && typeof image_url === 'string') ? image_url.trim().slice(0, 500) : null;
@@ -185,11 +179,14 @@ export async function actualizarSubproducto(req, res, next) {
 export async function misPublicaciones(req, res, next) {
   try {
     const { id_empresa } = req.query;
-    let query = supabase.from('subproductos').select(fields);
-    if (id_empresa && /^\d+$/.test(String(id_empresa))) {
-      query = query.eq('id_empresa', Number(id_empresa));
+    if (!id_empresa || !/^\d+$/.test(String(id_empresa))) {
+      return res.json({ ok: true, publicaciones: [] });
     }
-    const { data, error } = await query.order('fecha_registro', { ascending: false });
+    const { data, error } = await supabase
+      .from('subproductos')
+      .select(fields)
+      .eq('id_empresa', Number(id_empresa))
+      .order('fecha_registro', { ascending: false });
     if (error) throw error;
     return res.json({ ok: true, publicaciones: await Promise.all(data.map(present)) });
   } catch (error) {

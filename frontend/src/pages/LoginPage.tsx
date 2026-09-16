@@ -106,7 +106,7 @@ export default function LoginPage() {
             to="/pre_register"
             className="flex w-full items-center justify-center rounded-xl border-2 border-[#23ce6b] bg-white py-2.5 text-sm font-bold text-[#23ce6b] transition-colors hover:bg-[#23ce6b]/5"
           >
-            Registrar mi empresa
+            Registrarme
           </Link>
          
         </div>

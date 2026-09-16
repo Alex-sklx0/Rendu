@@ -15,7 +15,6 @@ import { UNIDADES_VOLUMEN } from "@/lib/constants";
 import type { UnidadVolumen } from "@/lib/constants";
 import { registrarSubproducto } from "@/api/client";
 
-const DEMO_EMPRESA_ID = "demo-empresa";
 
 const FRECUENCIAS = [
   { value: "Una vez", label: "Una vez (lote único)" },
@@ -54,7 +53,7 @@ export default function PostSubproductPage() {
     setSubmitError(null);
     setSuccess(false);
     try {
-      let companyId = DEMO_EMPRESA_ID;
+      let companyId: string | null = null;
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         try {
@@ -63,6 +62,11 @@ export default function PostSubproductPage() {
         } catch {
           // ignorar error
         }
+      }
+
+      if (!companyId) {
+        setSubmitError("No se encontró tu empresa registrada. Por favor cierra sesión, inicia de nuevo e intenta otra vez.");
+        return;
       }
 
       await registrarSubproducto({

@@ -28,11 +28,12 @@ export async function registrarEmpresa(req, res, next) {
     let rolId = id_rol;
     if (!rolId) {
       const actorLower = String(tipo_actor).toLowerCase();
+      // ck_empresas_rol solo permite GENERADOR(1) y TRANSFORMADOR(2).
+      // recicladores y gestores se mapean a TRANSFORMADOR en la tabla empresas.
       let roleName = 'GENERADOR';
-      if (actorLower.includes('transform') || actorLower.includes('eca')) {
+      if (actorLower.includes('transform') || actorLower.includes('eca') ||
+          actorLower.includes('recicla') || actorLower.includes('gestor')) {
         roleName = 'TRANSFORMADOR';
-      } else if (actorLower.includes('recicla') || actorLower.includes('gestor')) {
-        roleName = 'RECICLADOR';
       }
       const { data: roleRow } = await supabase.from('roles').select('id').ilike('nombre', roleName).maybeSingle();
       rolId = roleRow?.id || 1;
