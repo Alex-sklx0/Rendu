@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
@@ -31,6 +31,13 @@ export default function PostSubproductPage() {
   const [frecuencia, setFrecuencia] = useState("Una vez");
   const [imageUrl, setImageUrl] = useState<string>();
 
+  useEffect(() => {
+    const isAuth = localStorage.getItem("isAuthenticated");
+    if (!isAuth) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
   const {
     register,
     handleSubmit,
@@ -47,8 +54,19 @@ export default function PostSubproductPage() {
     setSubmitError(null);
     setSuccess(false);
     try {
+      let companyId = DEMO_EMPRESA_ID;
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.id_empresa) companyId = String(parsed.id_empresa);
+        } catch {
+          // ignorar error
+        }
+      }
+
       await registrarSubproducto({
-        id_empresa: DEMO_EMPRESA_ID,
+        id_empresa: companyId,
         nombre: values.nombre,
         descripcion: values.descripcion || undefined,
         id_familia: values.id_familia,
