@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
@@ -15,7 +15,6 @@ import { UNIDADES_VOLUMEN } from "@/lib/constants";
 import type { UnidadVolumen } from "@/lib/constants";
 import { registrarSubproducto } from "@/api/client";
 
-const DEMO_EMPRESA_ID = "demo-empresa";
 
 const FRECUENCIAS = [
   { value: "Una vez", label: "Una vez (lote único)" },
@@ -30,6 +29,13 @@ export default function PostSubproductPage() {
   const [success, setSuccess] = useState(false);
   const [frecuencia, setFrecuencia] = useState("Una vez");
   const [imageUrl, setImageUrl] = useState<string>();
+
+  useEffect(() => {
+    const isAuth = localStorage.getItem("isAuthenticated");
+    if (!isAuth) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   const {
     register,
@@ -47,8 +53,24 @@ export default function PostSubproductPage() {
     setSubmitError(null);
     setSuccess(false);
     try {
+      let companyId: string | null = null;
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.id_empresa) companyId = String(parsed.id_empresa);
+        } catch {
+          // ignorar error
+        }
+      }
+
+      if (!companyId) {
+        setSubmitError("No se encontró tu empresa registrada. Por favor cierra sesión, inicia de nuevo e intenta otra vez.");
+        return;
+      }
+
       await registrarSubproducto({
-        id_empresa: DEMO_EMPRESA_ID,
+        id_empresa: companyId,
         nombre: values.nombre,
         descripcion: values.descripcion || undefined,
         id_familia: values.id_familia,
@@ -61,7 +83,7 @@ export default function PostSubproductPage() {
       setSuccess(true);
       reset();
       setTimeout(() => {
-        navigate("/catalogo");
+        navigate("/catalog");
       }, 1500);
     } catch (err) {
       setSubmitError(
@@ -76,7 +98,7 @@ export default function PostSubproductPage() {
       <div className="mb-4">
         <button
           type="button"
-          onClick={() => navigate("/catalogo")}
+          onClick={() => navigate("/catalog")}
           className="inline-flex items-center gap-1.5 text-sm font-bold text-forest-700 transition-colors hover:text-forest-900"
         >
           <svg
@@ -263,7 +285,7 @@ export default function PostSubproductPage() {
               {isSubmitting ? "Publicando…" : "Publicar"}
             </button>
             <Link
-              to="/catalogo"
+              to="/catalog"
               className="inline-flex items-center justify-center rounded-xl border border-surface-200 bg-surface-100 px-6 py-3 text-base font-bold text-forest-800 transition-colors hover:bg-surface-200"
             >
               Cancelar
