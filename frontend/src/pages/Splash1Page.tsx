@@ -35,7 +35,7 @@ export default function Splash1Page() {
         {/* ── Footer / Navigation ──────────────────────────────────── */}
         <div className="mt-10 flex items-center justify-between pt-6">
           <Link
-            to="/catalogo"
+            to="/catalog"
             className="text-sm font-semibold text-ink-400 hover:text-ink-700"
           >
             Saltar

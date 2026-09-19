@@ -6,7 +6,7 @@ export default function CommunicationPage() {
   const [handle, setHandle] = useState("");
 
   function handleContinue() {
-    navigate("/catalogo");
+    navigate("/catalog");
   }
 
   return (

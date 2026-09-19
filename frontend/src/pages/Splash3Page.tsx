@@ -51,7 +51,7 @@ export default function Splash3Page() {
           {/* Siguiente paso según el flujo solicitado: Catálogo */}
           <button
             type="button"
-            onClick={() => navigate("/catalogo")}
+            onClick={() => navigate("/catalog")}
             className="inline-flex items-center gap-1.5 rounded-xl bg-[#23ce6b] px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f]"
           >
             Siguiente

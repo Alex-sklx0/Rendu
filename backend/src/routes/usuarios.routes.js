@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { registrarUsuario } from '../controllers/usuarios.controller.js';
+import { registrarUsuario, loginUsuario, eliminarUsuario } from '../controllers/usuarios.controller.js';
 
 const router = Router();
 
-// POST /api/usuarios — HU-01: Registro de usuario
-// Forma del request/response definida en /docs/api-contract.md
+// Rutas de usuarios
 router.post('/', registrarUsuario);
+router.post('/login', loginUsuario);
+router.delete('/:id', eliminarUsuario);
 
 export default router;

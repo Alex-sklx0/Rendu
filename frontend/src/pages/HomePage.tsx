@@ -8,9 +8,9 @@ export default function HomePage() {
     { name: "splash2", path: "/splash2", title: "Onboarding 2", desc: "Eficiencia del transporte" },
     { name: "splash3", path: "/splash3", title: "Onboarding 3", desc: "Certificación y seguridad" },
     { name: "login", path: "/login", title: "Inicio de sesión", desc: "Login y acceso a registro" },
-    { name: "pre_register", path: "/pre_register", title: "¿Quién eres?", desc: "Selección Persona vs Empresa" },
-    { name: "registro_persona", path: "/registro_persona", title: "Registro Persona", desc: "Formulario para persona/reciclador" },
-    { name: "registro_empresa", path: "/registro_empresa", title: "Registro Empresa", desc: "Formulario para empresas/generadores" },
+    { name: "pre-register", path: "/pre-register", title: "¿Quién eres?", desc: "Selección Persona vs Empresa" },
+    { name: "person-registration", path: "/person-registration", title: "Registro Persona", desc: "Formulario para persona/reciclador" },
+    { name: "company-registration", path: "/company-registration", title: "Registro Empresa", desc: "Formulario para empresas/generadores" },
     { name: "communication", path: "/communication", title: "Medio de comunicación", desc: "Configuración de canal preferido" },
   ];
 
@@ -40,7 +40,7 @@ export default function HomePage() {
             Iniciar flujo desde Splash →
           </Link>
           <Link
-            to="/catalogo"
+            to="/catalog"
             className="inline-flex items-center gap-2 rounded-xl border border-surface-200 bg-white px-6 py-3 text-sm font-bold text-ink-800 shadow-sm transition-colors hover:bg-surface-50"
           >
             Ver catálogo
@@ -95,7 +95,7 @@ export default function HomePage() {
       {/* ── App Views (Marketplace) ──────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-3 max-w-4xl mx-auto">
         <Link
-          to="/catalogo"
+          to="/catalog"
           className="card group hover:border-forest-600 transition-all hover:shadow-md"
         >
           <div className="flex items-center gap-3 mb-2">
@@ -113,7 +113,7 @@ export default function HomePage() {
         </Link>
 
         <Link
-          to="/publicar"
+          to="/post-subproduct"
           className="card group hover:border-forest-600 transition-all hover:shadow-md"
         >
           <div className="flex items-center gap-3 mb-2">

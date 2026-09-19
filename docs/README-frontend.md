@@ -86,18 +86,18 @@ Rutas principales:
 | `/splash2` | `Splash2Page` | Onboarding sobre transporte. |
 | `/splash3` | `Splash3Page` | Onboarding sobre certificación. |
 | `/login` | `LoginPage` | Inicio de sesión visual. |
-| `/pre_register` y `/pre-register` | `PreRegisterPage` | Selección de persona o empresa. |
-| `/registro_persona` y `/registro-persona` | `RegistroPersonaPage` | Registro visual de una persona. |
-| `/registro_empresa` y `/registro-empresa` | `RegistroEmpresaPage` | Registro visual de una empresa. |
-| `/communication` y `/comunicacion` | `CommunicationPage` | Configuración del medio de contacto. |
-| `/catalogo` | `CatalogPage` | Búsqueda y filtros del catálogo. |
-| `/catalogo/:id` | `SubproductDetailPage` | Detalle de un subproducto. `:id` es dinámico. |
-| `/perfil` | `ProfilePage` | Perfil y publicaciones propias. |
-| `/subproductos/:id/editar` | `UpdateSubproductPage` | Edición de un subproducto. |
-| `/publicar` | `PostSubproductPage` | Publicación de un subproducto. |
+| `/pre-register` | `PreRegisterPage` | Selección de persona o empresa. |
+| `/person-registration` | `PersonRegistrationPage` | Registro visual de una persona. |
+| `/company-registration` | `CompanyRegistrationPage` | Registro visual de una empresa. |
+| `/communication` | `CommunicationPage` | Configuración del medio de contacto. |
+| `/catalog` | `CatalogPage` | Búsqueda y filtros del catálogo. |
+| `/catalog/:id` | `SubproductDetailPage` | Detalle de un subproducto. `:id` es dinámico. |
+| `/profile` | `ProfilePage` | Perfil y publicaciones propias. |
+| `/subproduct/:id/edit` | `UpdateSubproductPage` | Edición de un subproducto. |
+| `/post-subproduct` | `PostSubproductPage` | Publicación de un subproducto. |
 | `/matching` | `MatchingPage` | Vista inicial del módulo de coincidencias. |
 | `/registro` | `RegisterPage` | Formulario general de registro con tabs. |
-| `/subproductos/nuevo` | `RegisterSubproductPage` | Formulario alternativo de registro de subproducto. |
+| `/subproducts/new` | `RegisterSubproductPage` | Formulario alternativo de registro de subproducto. |
 
 Las rutas con guion bajo y con guion medio existen para aceptar ambas formas mientras se consolidan los nombres definitivos.
 
@@ -290,7 +290,7 @@ Representa un elemento del catálogo:
 - empresa y municipio,
 - enlace al detalle.
 
-Recibe un `SubproductoCatalogo` mediante props y navega a `/catalogo/:id`.
+Recibe un `SubproductoCatalogo` mediante props y navega a `/catalog/:id`.
 
 ### `frontend/src/components/ui/FormField.tsx`
 
@@ -570,7 +570,7 @@ Sirve como plantilla de variables de entorno para desarrollo. No debe contener s
 
 El Dockerfile prepara el frontend para ejecutarse dentro del stack. `nginx.conf` configura el servidor que entrega los archivos estáticos de la SPA.
 
-En una SPA, el servidor debe devolver `index.html` para rutas como `/catalogo/sp-1`; de lo contrario, una recarga directa en una ruta interna puede producir un 404.
+En una SPA, el servidor debe devolver `index.html` para rutas como `/catalog/sp-1`; de lo contrario, una recarga directa en una ruta interna puede producir un 404.
 
 ## 12. Flujo completo de publicación y edición
 

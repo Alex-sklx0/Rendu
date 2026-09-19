@@ -19,7 +19,7 @@ export default function PreRegisterPage() {
         <div className="relative z-10 flex flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
           {/* Persona Card */}
           <Link
-            to="/registro_persona"
+            to="/person-registration"
             className="group flex flex-col items-center transition-transform duration-200 hover:scale-105"
           >
             <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-[#eef4f8] shadow-md transition-shadow group-hover:shadow-lg border border-[#e1e9ee]">
@@ -47,7 +47,7 @@ export default function PreRegisterPage() {
 
           {/* Empresa Card */}
           <Link
-            to="/registro_empresa"
+            to="/company-registration"
             className="group flex flex-col items-center transition-transform duration-200 hover:scale-105"
           >
             <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-[#eef4f8] shadow-md transition-shadow group-hover:shadow-lg border border-[#e1e9ee]">

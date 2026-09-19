@@ -1,7 +1,6 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import HomePage from "@/pages/HomePage";
-import RegisterPage from "@/pages/RegisterPage";
 import RegisterSubproductPage from "@/pages/RegisterSubproductPage";
 import CatalogPage from "@/pages/CatalogPage";
 import SubproductDetailPage from "@/pages/SubproductDetailPage";
@@ -12,12 +11,13 @@ import Splash2Page from "@/pages/Splash2Page";
 import Splash3Page from "@/pages/Splash3Page";
 import LoginPage from "@/pages/LoginPage";
 import PreRegisterPage from "@/pages/PreRegisterPage";
-import RegistroPersonaPage from "@/pages/RegistroPersonaPage";
-import RegistroEmpresaPage from "@/pages/RegistroEmpresaPage";
+import PersonRegistrationPage from "@/pages/PersonRegistrationPage";
+import CompanyRegistrationPage from "@/pages/CompanyRegistrationPage";
 import CommunicationPage from "@/pages/CommunicationPage";
 import MatchingPage from "@/pages/MatchingPage";
 import ProfilePage from "@/pages/ProfilePage";
 import UpdateSubproductPage from "@/pages/UpdateSubproductPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {
@@ -32,24 +32,22 @@ export const router = createBrowserRouter([
       { path: "splash3", element: <Splash3Page /> },
 
       { path: "login", element: <LoginPage /> },
-      { path: "pre_register", element: <PreRegisterPage /> },
       { path: "pre-register", element: <PreRegisterPage /> },
-      { path: "registro_persona", element: <RegistroPersonaPage /> },
-      { path: "registro-persona", element: <RegistroPersonaPage /> },
-      { path: "registro_empresa", element: <RegistroEmpresaPage /> },
-      { path: "registro-empresa", element: <RegistroEmpresaPage /> },
+      { path: "person-registration", element: <PersonRegistrationPage /> },
+      { path: "company-registration", element: <CompanyRegistrationPage /> },
       { path: "communication", element: <CommunicationPage /> },
-      { path: "comunicacion", element: <CommunicationPage /> },
 
-      { path: "catalogo", element: <CatalogPage /> },
-      { path: "catalogo/:id", element: <SubproductDetailPage /> },
-      { path: "perfil", element: <ProfilePage /> },
-      { path: "subproductos/:id/editar", element: <UpdateSubproductPage /> },
-      { path: "publicar", element: <PostSubproductPage /> },
+      { path: "catalog", element: <CatalogPage /> },
+      { path: "catalog/:id", element: <SubproductDetailPage /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "subproduct/:id/edit", element: <UpdateSubproductPage /> },
+      { path: "post-subproduct", element: <PostSubproductPage /> },
       { path: "matching", element: <MatchingPage /> },
 
-      { path: "registro", element: <RegisterPage /> },
-      { path: "subproductos/nuevo", element: <RegisterSubproductPage /> },
+      { path: "register", element: <Navigate to="/pre-register" replace /> },
+      { path: "subproducts/new", element: <RegisterSubproductPage /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ]);
+

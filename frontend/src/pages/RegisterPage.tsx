@@ -65,7 +65,7 @@ export default function RegisterPage() {
         </div>
         <h2 className="text-xl font-bold text-ink-900 mb-2">¡Cuenta creada!</h2>
         <p className="text-ink-500 text-sm mb-6">Tu cuenta ha sido registrada exitosamente.</p>
-        <Link to="/subproductos/nuevo" className="btn-primary">
+        <Link to="/subproducts/new" className="btn-primary">
           Publicar subproducto
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="5" y1="12" x2="19" y2="12" />
