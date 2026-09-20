@@ -121,11 +121,17 @@ export async function registrarSubproducto(req, res, next) {
       companyId = Number(id_empresa);
     }
     if (!companyId) {
-      return res.status(400).json({ ok: false, error: 'No se pudo identificar la empresa del publicador. Por favor vuelve a iniciar sesión.' });
+      return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
+    }
+
+    // Verificar en PostgreSQL que id_empresa corresponda a una empresa registrada
+    const { data: companyRow } = await supabase.from('empresas').select('id').eq('id', companyId).maybeSingle();
+    if (!companyRow) {
+      return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
     }
 
     let finalFotoUrl = null;
-    const inputImage = image_url || req.body.foto_url;
+    const inputImage = req.body.image_base64 || image_url || req.body.foto_url;
     if (inputImage && typeof inputImage === 'string') {
       try {
         finalFotoUrl = await uploadImageToStorage(inputImage, 'subproductos');
@@ -182,26 +188,50 @@ export async function obtenerSubproducto(req, res, next) {
   }
 }
 
+async function verificarPropietario(idSubproducto, idEmpresa) {
+  const { data, error } = await supabase
+    .from('subproductos')
+    .select('id_empresa, foto_url')
+    .eq('id', idSubproducto)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return { errorStatus: 404, errorMessage: 'Subproducto no encontrado.' };
+
+  if (idEmpresa !== undefined && idEmpresa !== null && String(data.id_empresa) !== String(idEmpresa)) {
+    return { errorStatus: 403, errorMessage: 'No tienes permiso sobre este subproducto.' };
+  }
+
+  return { product: data };
+}
+
 export async function actualizarSubproducto(req, res, next) {
   try {
     const { id } = req.params;
+    const { id_empresa, volumen_disponible } = req.body;
 
-    // Obtener la foto_url existente para poder borrar el archivo previo si se sube una nueva imagen
-    const { data: existingProduct } = await supabase
-      .from('subproductos')
-      .select('foto_url')
-      .eq('id', id)
-      .maybeSingle();
+    if (!id_empresa) {
+      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para actualizar un subproducto.' });
+    }
+
+    const { product: existingProduct, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
+    if (errorMessage) {
+      return res.status(errorStatus).json({ ok: false, error: errorMessage });
+    }
+
+    if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
+      return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero.' });
+    }
 
     const currentFotoUrl = existingProduct?.foto_url || null;
 
     const allowed = ['nombre', 'descripcion', 'volumen_disponible', 'foto_url', 'direccion', 'disponible'];
     const changes = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+
     if (Object.hasOwn(req.body, 'image_url') || Object.hasOwn(req.body, 'foto_url')) {
       const url = req.body.image_url || req.body.foto_url;
       if (url && typeof url === 'string') {
         try {
-          // Si url es una nueva imagen (Base64/Buffer), uploadImageToStorage eliminará automáticamente la imagen anterior de Storage
           changes.foto_url = await uploadImageToStorage(url, 'subproductos', currentFotoUrl);
         } catch {
           changes.foto_url = url.trim().slice(0, 500);
@@ -219,6 +249,7 @@ export async function actualizarSubproducto(req, res, next) {
     if (req.body.id_familia_material || req.body.id_familia) changes.id_familia_material = await resolveId('familias_material', req.body.id_familia_material ?? req.body.id_familia);
     if (req.body.id_unidad_medida || req.body.unidad_volumen) changes.id_unidad_medida = await resolveId('unidades_medida', req.body.id_unidad_medida ?? req.body.unidad_volumen, 'abreviatura');
     if (req.body.id_municipio || req.body.municipio) changes.id_municipio = await resolveId('municipios', req.body.id_municipio ?? req.body.municipio);
+
     const { data, error } = await supabase.from('subproductos').update(changes).eq('id', id).select(fields).single();
     if (error?.code === 'PGRST116') return res.status(404).json({ ok: false, error: 'Subproducto no encontrado.' });
     if (error) throw error;
@@ -249,13 +280,16 @@ export async function misPublicaciones(req, res, next) {
 export async function eliminarSubproducto(req, res, next) {
   try {
     const { id } = req.params;
+    const id_empresa = req.query.id_empresa || req.body?.id_empresa;
 
-    // Buscar foto_url para eliminar el archivo de Supabase Storage antes de borrar el registro de PostgreSQL
-    const { data: product } = await supabase
-      .from('subproductos')
-      .select('foto_url')
-      .eq('id', id)
-      .maybeSingle();
+    if (!id_empresa) {
+      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para eliminar un subproducto.' });
+    }
+
+    const { product, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
+    if (errorMessage) {
+      return res.status(errorStatus).json({ ok: false, error: errorMessage });
+    }
 
     if (product?.foto_url) {
       await deleteStorageFile(product.foto_url, 'Imagenes');

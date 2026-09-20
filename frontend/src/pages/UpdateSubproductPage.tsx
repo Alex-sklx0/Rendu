@@ -55,7 +55,10 @@ export default function UpdateSubproductPage() {
     setSaving(true);
     setMessage(null);
     try {
-      await actualizarSubproducto(id, {
+      const storedUser = localStorage.getItem("user");
+      const companyId = storedUser ? JSON.parse(storedUser).id_empresa : null;
+      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
+      await actualizarSubproducto(id, companyId, {
         ...form,
         volumen_disponible: Number(form.volumen_disponible),
         image_url: imageUrl,
@@ -75,7 +78,10 @@ export default function UpdateSubproductPage() {
     const confirm = window.confirm(`¿Estás seguro de que deseas eliminar este material?`);
     if (!confirm) return;
     try {
-      await eliminarSubproducto(id);
+      const storedUser = localStorage.getItem("user");
+      const companyId = storedUser ? JSON.parse(storedUser).id_empresa : null;
+      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
+      await eliminarSubproducto(id, companyId);
       navigate("/profile");
     } catch (error) {
       alert(error instanceof Error ? error.message : "Error al eliminar el material.");

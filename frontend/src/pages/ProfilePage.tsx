@@ -75,7 +75,9 @@ export default function ProfilePage() {
     if (!confirm) return;
 
     try {
-      await eliminarSubproducto(id);
+      const companyId = userData?.id_empresa;
+      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
+      await eliminarSubproducto(id, companyId);
       setPublicaciones((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Error al eliminar el subproducto.");
@@ -93,7 +95,9 @@ export default function ProfilePage() {
     );
 
     try {
-      await actualizarSubproducto(publicacion.id, { disponible: newDisponibilidad });
+      const companyId = userData?.id_empresa;
+      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
+      await actualizarSubproducto(publicacion.id, companyId, { disponible: newDisponibilidad });
     } catch (err) {
       // Revertir en caso de error
       setPublicaciones((prev) =>
@@ -104,6 +108,7 @@ export default function ProfilePage() {
       setTogglingId(null);
     }
   }
+
 
   function getMatchesForSubproducto(p: SubproductoDetalle): number {
     return catalogo.filter(
@@ -140,11 +145,20 @@ export default function ProfilePage() {
             </div>
             <div>
               <h2 className="font-bold text-ink-900">{displayName}</h2>
-              <p className="text-xs text-ink-500">Generador / Aprovechador · Valle de Aburrá</p>
+              <p className="text-xs text-ink-500">
+                {userData && !userData.id_empresa
+                  ? "Persona Natural / Reciclador · Valle de Aburrá"
+                  : "Empresa Generadora / Transformadora · Valle de Aburrá"}
+              </p>
             </div>
           </div>
           <dl className="mt-3 space-y-2 text-xs text-ink-500">
-            <div><dt className="inline font-bold text-ink-700">Tipo: </dt><dd className="inline">Aprovechador y generador</dd></div>
+            <div>
+              <dt className="inline font-bold text-ink-700">Tipo: </dt>
+              <dd className="inline">
+                {userData && !userData.id_empresa ? "Persona natural (Reciclador / Gestor)" : "Empresa (Aprovechador / Generador)"}
+              </dd>
+            </div>
             <div><dt className="inline font-bold text-ink-700">Contacto: </dt><dd className="inline">{displayEmail}</dd></div>
           </dl>
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -178,43 +192,54 @@ export default function ProfilePage() {
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
           <h2 className="text-xs font-bold text-ink-700">Resumen</h2>
           <div className="mt-3 grid grid-cols-2 gap-y-4">
-            <div><strong className="block text-xl text-ink-900">{publicaciones.length}</strong><span className="text-xs text-ink-500">Publicaciones</span></div>
+            <div><strong className="block text-xl text-ink-900">{userData && !userData.id_empresa ? "0" : publicaciones.length}</strong><span className="text-xs text-ink-500">Publicaciones</span></div>
             <div><strong className="block text-xl text-ink-900">{totalMatches}</strong><span className="text-xs text-ink-500">Matches reales</span></div>
             <div><strong className="block text-xl text-ink-900">{publicaciones.length > 0 ? publicaciones.length * 2 : 0}</strong><span className="text-xs text-ink-500">Contactos</span></div>
-            <div><strong className="block text-xl text-ink-900">{totalKg >= 1000 ? `${(totalKg / 1000).toFixed(1)} t` : `${totalKg} kg`}</strong><span className="text-xs text-ink-500">Material publicado</span></div>
+            <div><strong className="block text-xl text-ink-900">{userData && !userData.id_empresa ? "0 kg" : (totalKg >= 1000 ? `${(totalKg / 1000).toFixed(1)} t` : `${totalKg} kg`)}</strong><span className="text-xs text-ink-500">Material publicado</span></div>
           </div>
         </section>
 
-        {/* Dynamic Graphic Bars */}
-        <section className="hidden min-h-[190px] items-end justify-center gap-3 bg-[#f3f4f5] p-5 lg:flex">
-          {[35, 58, 72, 94].map((height) => <span key={height} className="w-7 bg-[#00a957]" style={{ height: `${height}px` }} />)}
-        </section>
       </div>
 
-      {/* Publications Table */}
-      <section className="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-ink-900">Mis publicaciones</h2>
-          <Link
-            to="/post-subproduct"
-            className="rounded-lg bg-[#23ce6b] px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-[#1fb85f]"
-          >
-            + Publicar nuevo
-          </Link>
-        </div>
-        {loading ? (
-          <p className="py-8 text-center text-sm text-ink-500">Cargando publicaciones...</p>
-        ) : publicaciones.length === 0 ? (
-          <div className="py-12 text-center text-ink-500">
-            <p className="text-sm">No has publicado ningún subproducto todavía.</p>
+      {/* Section Content: Persona Natural vs Empresa */}
+      {userData && !userData.id_empresa ? (
+        <section className="mt-4 rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-surface-200">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#dff4ed] text-3xl text-[#00805b]">
+            👤
+          </div>
+          <h2 className="mt-4 text-lg font-bold text-ink-900">Perfil de Persona Natural / Reciclador</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs text-ink-500 leading-relaxed">
+            Como persona natural registrada, tu perfil está habilitado para explorar el catálogo de subproductos y manifestar interés en materiales. La publicación de nuevos subproductos está reservada exclusivamente para empresas.
+          </p>
+          <div className="mt-6">
             <Link
-              to="/post-subproduct"
-              className="mt-3 inline-block rounded-xl bg-[#23ce6b] px-5 py-2 text-xs font-bold text-white hover:bg-[#1fb85f]"
+              to="/catalog"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f]"
             >
-              Publicar mi primer material
+              Explorar catálogo de subproductos
             </Link>
           </div>
-        ) : (
+        </section>
+      ) : (
+        /* Publications Table for Empresas */
+        <section className="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-ink-900">Mis publicaciones</h2>
+            
+          </div>
+          {loading ? (
+            <p className="py-8 text-center text-sm text-ink-500">Cargando publicaciones...</p>
+          ) : publicaciones.length === 0 ? (
+            <div className="py-12 text-center text-ink-500">
+              <p className="text-sm">No has publicado ningún subproducto todavía.</p>
+              <Link
+                to="/post-subproduct"
+                className="mt-3 inline-block rounded-xl bg-[#23ce6b] px-5 py-2 text-xs font-bold text-white hover:bg-[#1fb85f]"
+              >
+                Publicar mi primer material
+              </Link>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-left text-xs">
               <thead className="border-b border-surface-200 text-ink-700">
@@ -279,6 +304,7 @@ export default function ProfilePage() {
                         >
                           Editar
                         </Link>
+                        
                         <button
                           type="button"
                           onClick={() => handleDeleteSubproducto(publicacion.id, publicacion.nombre)}
@@ -295,32 +321,9 @@ export default function ProfilePage() {
           </div>
         )}
       </section>
+      )}
 
-      {/* Certificaciones Section */}
-      <section className="mt-4 max-w-xl rounded-2xl bg-white p-6 shadow-sm ring-1 ring-surface-200">
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <h2 className="font-bold text-ink-900">Certificaciones</h2>
-            <p className="mt-3 text-sm leading-tight text-ink-700">
-              Para generar un certificado de cumplimiento ambiental debes cumplir 500 kg aprovechados.
-            </p>
-          </div>
-          <div className="shrink-0 text-right">
-            <p className="text-xs font-bold text-ink-900">Cantidad aprovechada.</p>
-            <div className="mt-4 rounded-md border-b-2 border-ink-900 px-3 py-2 text-xs font-bold">
-              {totalKg >= 1000 ? `${(totalKg / 1000).toFixed(1)} toneladas` : `${totalKg} kg`}<br />
-              <span className="font-normal">Meta: 500 kg</span>
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          disabled={totalKg < 500}
-          className="mt-4 ml-auto block rounded-md bg-[#23ce6b] px-5 py-2 text-xs font-bold text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1fb85f]"
-        >
-          Descargar certificado
-        </button>
-      </section>
+     
     </div>
   );
 }

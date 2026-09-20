@@ -18,6 +18,16 @@ export function AppShell() {
   ].some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
   const isAuthenticated = typeof window !== "undefined" && Boolean(localStorage.getItem("isAuthenticated"));
+  const storedUserStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  let isPersona = false;
+  if (storedUserStr) {
+    try {
+      const parsed = JSON.parse(storedUserStr);
+      if (!parsed?.id_empresa) isPersona = true;
+    } catch {
+      // Ignorar error de JSON parse
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-50">
@@ -32,20 +42,22 @@ export function AppShell() {
 
             {/* Center: Action Pills (+ Publicar · ⌂ Catalogo · ↔ Matching) */}
             <nav className="flex items-center gap-2 justify-self-center sm:gap-3">
-              {/* + Publicar */}
-              <NavLink
-                to={isAuthenticated ? "/post-subproduct" : "/login"}
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                    isActive
-                      ? "bg-[#23ce6b] text-white shadow-sm"
-                      : "bg-[#dff4ed] text-[#18322d] hover:bg-[#cdeee3]"
-                  }`
-                }
-              >
-                <span className="text-base font-extrabold">+</span>
-                <span>Publicar</span>
-              </NavLink>
+              {/* + Publicar (Oculto para usuarios tipo Persona / Reciclador individual) */}
+              {!isPersona && (
+                <NavLink
+                  to={isAuthenticated ? "/post-subproduct" : "/login"}
+                  className={({ isActive }) =>
+                    `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
+                      isActive
+                        ? "bg-[#23ce6b] text-white shadow-sm"
+                        : "bg-[#dff4ed] text-[#18322d] hover:bg-[#cdeee3]"
+                    }`
+                  }
+                >
+                  <span className="text-base font-extrabold">+</span>
+                  <span>Publicar</span>
+                </NavLink>
+              )}
 
               {/* Catalogo */}
               <NavLink

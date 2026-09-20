@@ -8,12 +8,12 @@ export type FamiliaMaterial = {
 };
 
 export const FAMILIAS_MATERIAL: FamiliaMaterial[] = [
-  { id: "papel_carton", nombre: "Papel y cartón" },
-  { id: "plasticos", nombre: "Plásticos" },
-  { id: "vidrio", nombre: "Vidrio" },
-  { id: "metales", nombre: "Metales" },
-  { id: "textil", nombre: "Textil" },
-  { id: "madera", nombre: "Madera" },
+  { id: "1", nombre: "Papel y cartón" },
+  { id: "2", nombre: "Plásticos" },
+  { id: "3", nombre: "Vidrio" },
+  { id: "4", nombre: "Metales" },
+  { id: "5", nombre: "Textiles" },
+  { id: "6", nombre: "Madera" },
 ];
 
 export const MUNICIPIOS_VALLE_ABURRA: string[] = [
@@ -29,13 +29,12 @@ export const MUNICIPIOS_VALLE_ABURRA: string[] = [
   "Girardota",
 ];
 
-export type UnidadVolumen = "kg" | "ton" | "m3" | "unidades";
+export type UnidadVolumen = "kg" | "ton" | "m3";
 
-export const UNIDADES_VOLUMEN: { value: UnidadVolumen; label: string }[] = [
-  { value: "kg", label: "Kilogramos (kg)" },
-  { value: "ton", label: "Toneladas (ton)" },
-  { value: "m3", label: "Metros cúbicos (m³)" },
-  { value: "unidades", label: "Unidades" },
+export const UNIDADES_VOLUMEN: { value: UnidadVolumen; label: string; id: number }[] = [
+  { value: "kg", label: "Kilogramos (kg)", id: 1 },
+  { value: "ton", label: "Toneladas (t)", id: 2 },
+  { value: "m3", label: "Metros cúbicos (m³)", id: 3 },
 ];
 
 export type TipoActor =

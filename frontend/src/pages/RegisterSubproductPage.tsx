@@ -17,9 +17,6 @@ import { UNIDADES_VOLUMEN } from "@/lib/constants";
 import type { UnidadVolumen } from "@/lib/constants";
 import { registrarSubproducto } from "@/api/client";
 
-// TODO(api-contract): id_empresa debería venir de la empresa activa en sesión.
-const DEMO_EMPRESA_ID = "demo-empresa";
-
 const STEPS = [
   { label: "Información" },
   { label: "Ubicación" },
@@ -45,8 +42,14 @@ export default function RegisterSubproductPage() {
     setSubmitError(null);
     setSuccess(false);
     try {
+      const storedUser = localStorage.getItem("user");
+      const companyId = storedUser ? JSON.parse(storedUser).id_empresa : null;
+      if (!companyId) {
+        setSubmitError("No se encontró tu empresa registrada. Inicia sesión con una cuenta de empresa.");
+        return;
+      }
       await registrarSubproducto({
-        id_empresa: DEMO_EMPRESA_ID,
+        id_empresa: companyId,
         nombre: values.nombre,
         descripcion: values.descripcion || undefined,
         id_familia: values.id_familia,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { registrarEmpresa, registrarUsuario } from "@/api/client";
+import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 
 export default function RegistroEmpresaPage() {
   const navigate = useNavigate();
@@ -29,8 +30,8 @@ export default function RegistroEmpresaPage() {
         id_usuario: user.id,
         nombre: nombreEmpresa,
         nit,
-        municipio: ubicacion.split(",")[0].trim(),
-        tipo_actor: tipoEmpresa === "Generador" ? "empresa_generadora" : "empresa_transformadora",
+        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(ubicacion.split(",")[0].trim()) + 1,
+        id_rol: tipoEmpresa === "Generador" ? 1 : 2,
       });
       navigate("/communication");
     } catch (err) {

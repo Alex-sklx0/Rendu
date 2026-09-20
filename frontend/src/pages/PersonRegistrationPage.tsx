@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
-import { registrarUsuario, registrarEmpresa, registrarPersona } from "@/api/client";
+import { registrarUsuario, registrarPersona } from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 
 export default function PersonRegistrationPage() {
@@ -17,8 +17,8 @@ export default function PersonRegistrationPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Por favor completa los campos obligatorios.");
+    if (!email || !password || !cedula.trim()) {
+      setError("Por favor completa correo, contraseña y cédula.");
       return;
     }
 
@@ -32,19 +32,9 @@ export default function PersonRegistrationPage() {
       await registrarPersona({
         id_usuario: user.id,
         nombre: nombreFinal,
-        cedula: cedula.trim() || undefined,
-        municipio,
-        tipo_actor: tipoActividad,
-      });
-
-      // Crear también en `empresas` para que pueda publicar subproductos
-      // (subproductos.id_empresa → empresas.id, no existe FK a personas)
-      const empresa = await registrarEmpresa({
-        id_usuario: user.id,
-        nombre: nombreFinal,
-        nit: cedula.trim() ? `CC-${cedula.trim()}` : `CC-${Date.now()}`,
-        municipio,
-        tipo_actor: tipoActividad as import("@/lib/constants").TipoActor,
+        cedula: cedula.trim(),
+        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
+        id_rol: tipoActividad === "Reciclador" ? 3 : 2,
       });
 
       localStorage.setItem("isAuthenticated", "true");
@@ -52,7 +42,7 @@ export default function PersonRegistrationPage() {
         id: user.id,
         email: user.email,
         nombre: nombreFinal,
-        id_empresa: empresa.id,
+        id_empresa: null,
       }));
       navigate("/communication");
     } catch (err) {
@@ -113,6 +103,7 @@ export default function PersonRegistrationPage() {
                 value={cedula}
                 onChange={(e) => setCedula(e.target.value)}
                 placeholder="Ej. 1234567890"
+                required
                 className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
               />
             </div>

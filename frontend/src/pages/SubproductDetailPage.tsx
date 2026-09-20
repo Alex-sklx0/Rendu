@@ -203,16 +203,7 @@ export default function SubproductDetailPage() {
               </p>
             </div>
 
-            {/* Conditions Section */}
-            <div className="mt-6 border-t border-surface-100 pt-6">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-ink-700">
-                Condiciones
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink-600">
-                {subproducto.condiciones}
-              </p>
-            </div>
-
+          
             {/* CTA Contact Button */}
             <div className="mt-8 border-t border-surface-100 pt-6">
               {contactado ? (

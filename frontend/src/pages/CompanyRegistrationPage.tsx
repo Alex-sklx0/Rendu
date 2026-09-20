@@ -17,7 +17,7 @@ export default function CompanyRegistrationPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password || !nombreEmpresa || !nit) {
+    if (!email || !password || !nombreEmpresa || !nit || !municipio) {
       setError("Por favor completa todos los campos.");
       return;
     }
@@ -30,8 +30,8 @@ export default function CompanyRegistrationPage() {
         id_usuario: user.id,
         nombre: nombreEmpresa,
         nit,
-        municipio,
-        tipo_actor: tipoEmpresa === "Generador" ? "empresa_generadora" : "empresa_transformadora",
+        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
+        id_rol: tipoEmpresa === "Generador" ? 1 : 2,
       });
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({
@@ -143,7 +143,6 @@ export default function CompanyRegistrationPage() {
                 >
                   <option value="Generador">Generador</option>
                   <option value="Transformador">Transformador</option>
-                  <option value="ECA">ECA</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-ink-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

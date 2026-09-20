@@ -16,6 +16,14 @@ export async function registrarEmpresa(req, res, next) {
       return res.status(400).json({ ok: false, error: 'id_usuario, nombre, nit, municipio y tipo_actor son obligatorios.' });
     }
 
+    const nitNormalizado = String(nit).trim().replace(/[.\s]/g, '');
+
+    // Verificar si ya existe una empresa registrada con el mismo NIT (incluso con diferente formato de puntos/espacios)
+    const { data: empresasList } = await supabase.from('empresas').select('id, nit');
+    if (empresasList?.some(e => String(e.nit).trim().replace(/[.\s]/g, '') === nitNormalizado)) {
+      return res.status(409).json({ ok: false, error: 'Ya existe una empresa registrada con ese NIT.' });
+    }
+
     let municipioId = id_municipio;
     if (!municipioId && municipio) {
       const cleanMuni = municipio.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -41,7 +49,7 @@ export async function registrarEmpresa(req, res, next) {
 
     const { data, error } = await supabase
       .from('empresas')
-      .insert({ id_usuario, nombre, nit, id_municipio: municipioId, id_rol: rolId })
+      .insert({ id_usuario, nombre, nit: nitNormalizado, id_municipio: municipioId, id_rol: rolId })
       .select('id, id_usuario, nombre, nit, id_municipio, id_rol')
       .single();
 

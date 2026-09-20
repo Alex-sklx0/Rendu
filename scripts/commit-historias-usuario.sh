@@ -68,7 +68,10 @@ git checkout "$TEMP_SNAPSHOT" -- \
   backend/src/routes/index.js \
   backend/API_backend_sprint1.md \
   frontend/src/pages/LoginPage.tsx \
-  frontend/src/pages/RegistroPersonaPage.tsx 2>/dev/null || true
+  frontend/src/pages/RegistroPersonaPage.tsx \
+  frontend/src/pages/PersonRegistrationPage.tsx \
+  frontend/src/lib/constants.ts \
+  frontend/src/types/index.ts 2>/dev/null || true
 git rm -r --cached scripts 2>/dev/null || true
 git add -A
 git commit -m "feat(HU-01): registrar, autenticar y gestionar usuarios y personas con Supabase
@@ -84,13 +87,14 @@ git checkout -B "${BRANCHES[1]}"
 git checkout "$TEMP_SNAPSHOT" -- \
   backend/src/controllers/empresas.controller.js \
   backend/src/routes/empresas.routes.js \
-  frontend/src/pages/RegistroEmpresaPage.tsx 2>/dev/null || true
+  frontend/src/pages/RegistroEmpresaPage.tsx \
+  frontend/src/pages/CompanyRegistrationPage.tsx 2>/dev/null || true
 git rm -r --cached scripts 2>/dev/null || true
 git add -A
-git commit -m "feat(HU-02): registrar y vincular empresas con selector de municipio
+git commit -m "feat(HU-02): registrar y vincular empresas con selector de municipio y validacion de NIT
 
-- Backend: empresas.controller.js y empresas.routes.js para registro y consulta de empresa vinculada al usuario con mapeo de id_rol.
-- Frontend: RegistroEmpresaPage con selector desplegable de municipios del Valle de Aburra y rol empresarial." || true
+- Backend: empresas.controller.js (control de duplicados por NIT estandarizado) y empresas.routes.js para registro y consulta de empresa vinculada al usuario.
+- Frontend: RegistroEmpresaPage / CompanyRegistrationPage con selector desplegable de municipios del Valle de Aburra y rol empresarial." || true
 
 # ── HU-03 a HU-06: Subproductos, clasificacion, volumen y ubicacion ───────
 echo
@@ -99,23 +103,30 @@ git checkout -B "${BRANCHES[2]}"
 git checkout "$TEMP_SNAPSHOT" -- \
   backend/src/controllers/subproductos.controller.js \
   backend/src/routes/subproductos.routes.js \
-  frontend/src/pages/PostSubproductPage.tsx 2>/dev/null || true
+  frontend/src/pages/PostSubproductPage.tsx \
+  frontend/src/pages/RegisterSubproductPage.tsx 2>/dev/null || true
 git rm -r --cached scripts 2>/dev/null || true
 git add -A
 git commit -m "feat(HU-03-06): registrar, clasificar, medir y ubicar subproductos
 
 - Backend: subproductos.controller.js con resolucion de IDs para familias, unidades y municipios.
 - Backend: subproductos.routes.js con rutas POST, GET, PATCH y DELETE.
-- Frontend: formulario PostSubproductPage para registro de nuevos subproductos sin fallbacks demo." || true
+- Frontend: formulario PostSubproductPage para registro de nuevos subproductos." || true
 
 # ── HU-07: Publicar subproducto ───────────────────────────────────────────
 echo
 echo "🚀 [4/11] Creando ${BRANCHES[3]}..."
 git checkout -B "${BRANCHES[3]}"
+git checkout "$TEMP_SNAPSHOT" -- \
+  frontend/src/components/layout/AppShell.tsx \
+  frontend/src/pages/PostSubproductPage.tsx \
+  backend/src/controllers/subproductos.controller.js 2>/dev/null || true
 git rm -r --cached scripts 2>/dev/null || true
-git commit --allow-empty -m "feat(HU-07): publicar subproductos disponibles en el sistema
+git add -A
+git commit -m "feat(HU-07): publicar subproductos y restriccion de publicacion para personas naturales
 
-- Soporte de estado de publicacion y validaciones en backend y frontend." || true
+- Backend: validacion 403 Forbidden en subproductos.controller.js impidiendo a personas naturales/recicladores publicar subproductos.
+- Frontend: ocultamiento del tab '+ Publicar' en AppShell.tsx y pantalla de advertencia en PostSubproductPage.tsx." || true
 
 # ── HU-08: Agregar fotografia al subproducto ──────────────────────────────
 echo
@@ -171,7 +182,7 @@ git rm -r --cached scripts 2>/dev/null || true
 git add -A
 git commit -m "feat(HU-11): actualizar y eliminar informacion de subproductos e imagenes in-place
 
-- Backend: reemplazo in-place de imagenes en Supabase Storage con deleteStorageFile y actualizacion en actualizarSubproducto.
+- Backend: reemplazo in-place de imagenes en Supabase Storage con deleteStorageFile y actualizacion en actualizarSubproducto con verificacion de propietario (403 Forbidden).
 - Frontend: UpdateSubproductPage con modificacion de descripcion, volumen, municipio, switch de disponibilidad y eliminacion." || true
 
 # ── HU-12: Gestionar disponibilidad ───────────────────────────────────────
@@ -182,9 +193,9 @@ git checkout "$TEMP_SNAPSHOT" -- \
   frontend/src/pages/ProfilePage.tsx 2>/dev/null || true
 git rm -r --cached scripts 2>/dev/null || true
 git add -A
-git commit -m "feat(HU-12): gestionar disponibilidad de subproductos con toggle en tiempo real
+git commit -m "feat(HU-12): gestionar disponibilidad de subproductos con toggle y vista adaptada a personas
 
-- Frontend: ProfilePage con boton toggle interactivo (Disponible / Sin stock) por subproducto, matches calculados y eliminacion de cuenta." || true
+- Frontend: ProfilePage con tarjeta dedicada para usuarios persona (bloqueo de boton de publicar) y tabla con toggle interactivo para empresas." || true
 
 # ── HU-13 a HU-16: Busqueda, Filtros y Coincidencias ──────────────────────
 echo
@@ -214,7 +225,7 @@ git commit -m "feat(integracion): conectar frontend, backend monolito Express y 
 
 - Eliminacion completa de mockClient y capa de persistencia simulada local.
 - client.ts conectado 100% a la API REST del backend con soporte de mis-publicaciones por usuario/empresa y registro de personas.
-- Perfil con roles dinamicos y exclusividad de publicaciones propias.
+- Perfil con roles dinamicos, exclusion de opciones de publicacion para personas y exclusividad de publicaciones propias.
 - Servicio storage.service.js conectado a Supabase Storage con borrado e in-place update.
 - Definicion de tipos con campo disponible en types/index.ts.
 - Header y navegacion sincronizados en AppShell.tsx." || true

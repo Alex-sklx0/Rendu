@@ -1,4 +1,4 @@
-import type { TipoActor, UnidadVolumen } from "@/lib/constants";
+import type { UnidadVolumen } from "@/lib/constants";
 
 // Estos tipos reflejan /docs/api-contract.md. Si el backend define una forma distinta,
 // actualiza ambos archivos en el mismo cambio.
@@ -6,18 +6,18 @@ import type { TipoActor, UnidadVolumen } from "@/lib/constants";
 export type Usuario = {
   id: string;
   email: string;
-  rol: string;
   fecha_registro: string;
+  nombre?: string;
+  id_empresa?: string | number | null;
 };
 
 export type Empresa = {
   id: string;
-  id_usuario: string;
+  id_usuario: string | number;
   nombre: string;
   nit: string;
-  municipio: string;
-  tipo_actor: TipoActor;
-  medio_contacto?: string;
+  id_municipio: number;
+  id_rol: number;
 };
 
 export type Subproducto = {
@@ -26,20 +26,26 @@ export type Subproducto = {
   nombre: string;
   descripcion?: string;
   id_familia: string;
+  id_municipio?: number;
+  id_unidad_medida?: number;
   volumen_disponible: number;
   unidad_volumen: UnidadVolumen;
   municipio: string;
   estado_publicacion: "borrador" | "publicado";
   disponible: boolean;
+  id_estado_publicacion?: number;
 };
 
 export type SubproductoCatalogo = {
   id: string;
+  id_empresa: string;
   nombre: string;
   familia: string;
   id_familia: string;
+  id_municipio?: number;
+  id_unidad_medida?: number;
   volumen_disponible: number;
-  unidad_volumen: string;
+  unidad_volumen: UnidadVolumen;
   empresa: string;
   usuario?: string;
   municipio: string;
@@ -47,6 +53,8 @@ export type SubproductoCatalogo = {
   image_url?: string;
   destacado?: boolean;
   disponible?: boolean;
+  estado_publicacion?: "borrador" | "publicado";
+  id_estado_publicacion?: number;
 };
 
 export type SubproductoDetalle = SubproductoCatalogo & {
