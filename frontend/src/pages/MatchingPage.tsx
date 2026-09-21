@@ -17,13 +17,13 @@ export default function MatchingPage() {
 
         <div className="mt-8 flex justify-center gap-3">
           <Link
-            to="/catalogo"
+            to="/catalog"
             className="inline-flex items-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f]"
           >
             Explorar catálogo
           </Link>
           <Link
-            to="/publicar"
+            to="/post-subproduct"
             className="inline-flex items-center gap-2 rounded-xl border border-surface-200 bg-surface-50 px-6 py-3 text-sm font-bold text-ink-700 transition-colors hover:bg-surface-100"
           >
             + Publicar material
