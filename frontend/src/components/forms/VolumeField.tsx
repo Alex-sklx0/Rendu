@@ -1,3 +1,5 @@
+// Campo de volumen del material con cantidad y unidad
+
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -10,7 +12,6 @@ type VolumeFieldProps = {
   unitHasError?: boolean;
 };
 
-/** Campo de volumen disponible — HU-05. Cantidad numérica + selector de unidad. */
 export function VolumeField({
   amountRegistration,
   unitRegistration,

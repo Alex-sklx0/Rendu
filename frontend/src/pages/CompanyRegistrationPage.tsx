@@ -1,3 +1,5 @@
+// Pagina para el registro de empresas
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
@@ -15,8 +17,11 @@ export default function CompanyRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Envio del formulario de registro
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validacion de campos requeridos
     if (!email || !password || !nombreEmpresa || !nit || !municipio) {
       setError("Por favor completa todos los campos.");
       return;
@@ -25,7 +30,10 @@ export default function CompanyRegistrationPage() {
     setIsSubmitting(true);
     setError(null);
     try {
+      // 1. Crear el usuario en el sistema
       const user = await registrarUsuario({ email, password });
+      
+      // 2. Registrar los datos de la empresa vinculada
       const empresa = await registrarEmpresa({
         id_usuario: user.id,
         nombre: nombreEmpresa,
@@ -33,6 +41,8 @@ export default function CompanyRegistrationPage() {
         id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
         id_rol: tipoEmpresa === "Generador" ? 1 : 2,
       });
+
+      // Guardar datos de sesion localmente
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({
         id: user.id,
@@ -40,6 +50,8 @@ export default function CompanyRegistrationPage() {
         nombre: empresa.nombre || nombreEmpresa,
         id_empresa: empresa.id,
       }));
+
+      // Redirigir al modulo de comunicacion o catalogo
       navigate("/communication");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar la empresa.");
@@ -51,12 +63,13 @@ export default function CompanyRegistrationPage() {
   return (
     <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm sm:p-10">
-        {/* ── Logo ─────────────────────────────────────────────────── */}
+        
+        {/* Logo principal */}
         <div className="flex justify-center mb-4">
           <RenduLogo size="lg" />
         </div>
 
-        {/* ── Title & Subtitle ─────────────────────────────────────── */}
+        {/* Titulo y subtitulo */}
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-ink-900">
             Hablanos de tu empresa
@@ -66,15 +79,17 @@ export default function CompanyRegistrationPage() {
           </p>
         </div>
 
+        {/* Mensaje de error si falla el registro */}
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 p-3 text-center text-xs font-semibold text-red-600">
             {error}
           </div>
         )}
 
-        {/* ── Form ─────────────────────────────────────────────────── */}
+        {/* Formulario de registro */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Row 1: Nombre & Nit */}
+          
+          {/* Nombre y NIT */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="nombreEmpresa">
@@ -104,7 +119,7 @@ export default function CompanyRegistrationPage() {
             </div>
           </div>
 
-          {/* Row 2: Municipio & Tipo de empresa */}
+          {/* Municipio y Tipo de empresa */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="municipio">
@@ -153,7 +168,7 @@ export default function CompanyRegistrationPage() {
             </div>
           </div>
 
-          {/* Row 3: Correo empresarial */}
+          {/* Correo electronico */}
           <div>
             <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="email">
               Correo empresarial
@@ -168,7 +183,7 @@ export default function CompanyRegistrationPage() {
             />
           </div>
 
-          {/* Row 4: Contraseña */}
+          {/* Contraseña */}
           <div>
             <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="password">
               Contraseña
@@ -183,7 +198,7 @@ export default function CompanyRegistrationPage() {
             />
           </div>
 
-          {/* ── Actions ──────────────────────────────────────────────── */}
+          {/* Botones de accion */}
           <div className="space-y-2.5 pt-3">
             <button
               type="submit"

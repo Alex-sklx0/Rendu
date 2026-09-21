@@ -1,3 +1,5 @@
+// Logo de Rendu con texto opcional
+
 import iconImg from "@/img/icon.png";
 
 interface RenduLogoProps {
@@ -23,7 +25,7 @@ export function RenduLogo({
 
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
-      {/* ── Box with Sprout Logo Image from @/img/icon.png ──────── */}
+      {/* Logo de Rendu */}
       <img
         src={iconImg}
         alt="Rendu Logo"

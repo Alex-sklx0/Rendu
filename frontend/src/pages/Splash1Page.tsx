@@ -1,3 +1,5 @@
+// Pantalla de presentacion 1
+
 import { Link, useNavigate } from "react-router-dom";
 import circleBoxImg from "@/img/circle_box.png";
 
@@ -7,11 +9,11 @@ export default function Splash1Page() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-lg sm:p-12">
-        {/* ── Green Top-Left Corner Accent ──────────────────────────── */}
+        {/* Decoracion verde de la esquina */}
         <div className="pointer-events-none absolute left-6 top-6 h-14 w-28 rounded-tl-xl border-l-4 border-t-4 border-[#23ce6b]" />
 
         <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-center">
-          {/* Left Text */}
+          {/* Texto de presentacion */}
           <div className="flex-1 space-y-4">
             <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
               Conecta tus subproductos a través de Rendu
@@ -22,7 +24,7 @@ export default function Splash1Page() {
             </p>
           </div>
 
-          {/* Right Illustration: circle_box.png */}
+          {/* Ilustracion */}
           <div className="flex h-44 w-44 flex-shrink-0 items-center justify-center">
             <img
               src={circleBoxImg}
@@ -32,7 +34,7 @@ export default function Splash1Page() {
           </div>
         </div>
 
-        {/* ── Footer / Navigation ──────────────────────────────────── */}
+        {/* Navegacion inferior */}
         <div className="mt-10 flex items-center justify-between pt-6">
           <Link
             to="/catalog"
@@ -41,7 +43,7 @@ export default function Splash1Page() {
             Saltar
           </Link>
 
-          {/* Dots Indicator */}
+          {/* Indicador de progreso */}
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-6 rounded-full bg-[#23ce6b]" />
             <span className="h-2.5 w-2.5 rounded-full bg-surface-200" />

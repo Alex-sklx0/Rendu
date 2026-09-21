@@ -1,3 +1,5 @@
+// Indicador de pasos de un formulario
+
 import clsx from "@/lib/clsx";
 
 type Step = {
@@ -6,7 +8,7 @@ type Step = {
 
 type StepperProps = {
   steps: Step[];
-  currentStep: number; // 0-indexed
+  currentStep: number; // comienza en 0
 };
 
 export function Stepper({ steps, currentStep }: StepperProps) {

@@ -12,17 +12,16 @@ export default function CommunicationPage() {
   return (
     <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
-        {/* ── Green Bottom-Left Corner Accent ──────────────────────── */}
         <div className="pointer-events-none absolute bottom-6 left-6 h-16 w-36 rounded-bl-2xl border-b-4 border-l-4 border-[#23ce6b]" />
 
-        {/* ── Title ────────────────────────────────────────────────── */}
+        {/* titulo */}
         <div className="relative z-10 mx-auto max-w-lg text-center mb-10">
           <h1 className="text-lg font-extrabold leading-snug text-ink-900 sm:text-2xl">
             Para comunicarte con otros danos el link, número o describe tu medio de comunicación preferido...
           </h1>
         </div>
 
-        {/* ── Center Communication Tile & Input ────────────────────── */}
+        {/* Input de contacto */}
         <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5 my-8">
           {/* Instagram / App Icon Tile */}
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#f9ed32] via-[#ee2a7b] to-[#002aff] p-0.5 shadow-md">
@@ -43,7 +42,7 @@ export default function CommunicationPage() {
             </div>
           </div>
 
-          {/* Pill Input */}
+          {/* Input de contacto */}
           <div className="w-full max-w-sm">
             <input
               type="text"
@@ -55,7 +54,7 @@ export default function CommunicationPage() {
           </div>
         </div>
 
-        {/* ── Continue Button (Bottom Right) ───────────────────────── */}
+        {/* boton de continuar */}
         <div className="relative z-10 mt-12 flex justify-end">
           <button
             type="button"

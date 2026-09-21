@@ -1,3 +1,5 @@
+// Banner para mostrar mensajes de exito o error
+
 import clsx from "@/lib/clsx";
 
 type BannerProps = {

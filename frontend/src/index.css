@@ -16,7 +16,7 @@
 }
 
 @layer components {
-  /* ─── Form fields ──────────────────────────────────────────────── */
+  /* Estilos de los campos de formulario */
   .field-label {
     @apply block text-sm font-semibold text-ink-900 mb-1.5;
   }
@@ -35,7 +35,7 @@
     @apply mt-1 text-sm text-ink-500;
   }
 
-  /* ─── Buttons ──────────────────────────────────────────────────── */
+  /* Estilos de los botones */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-forest-700 px-6 py-3
            text-white font-semibold transition-all hover:bg-forest-800
@@ -50,19 +50,19 @@
            text-ink-500 font-medium transition-colors hover:text-ink-900;
   }
 
-  /* ─── Card ─────────────────────────────────────────────────────── */
+  /* Estilos de las tarjetas */
   .card {
     @apply rounded-2xl border border-surface-200 bg-white p-8;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 24px rgba(0, 0, 0, 0.03);
   }
 
-  /* ─── Registration card (centered) ─────────────────────────────── */
+  /* Tarjeta de registro centrada */
   .register-card {
     @apply card mx-auto w-full;
     max-width: 520px;
   }
 
-  /* ─── Header gradient line ─────────────────────────────────────── */
+  /* Linea de gradiente del encabezado */
   .header-gradient-line {
     height: 2px;
     background: linear-gradient(
@@ -72,7 +72,7 @@
     );
   }
 
-  /* ─── Tabs (Persona / Empresa segmented control) ───────────────── */
+  /* Pestañas para elegir persona o empresa */
   .tab-group {
     @apply flex rounded-lg border border-surface-200 bg-surface-50 p-1;
   }
@@ -84,7 +84,7 @@
     @apply bg-white text-ink-900 shadow-sm;
   }
 
-  /* ─── Stepper ──────────────────────────────────────────────────── */
+  /* Estilos del indicador de pasos */
   .stepper {
     @apply flex items-center justify-center gap-0;
   }
@@ -114,7 +114,7 @@
     @apply text-ink-900;
   }
 
-  /* ─── Photo dropzone ───────────────────────────────────────────── */
+  /* Zona para subir fotos */
   .dropzone {
     @apply flex flex-col items-center justify-center rounded-xl border-2 border-dashed
            border-surface-200 bg-surface-50/50 px-6 py-10 text-center transition-colors;
@@ -126,7 +126,7 @@
     @apply border-forest-600 bg-forest-700/5;
   }
 
-  /* ─── Info banner (green) ──────────────────────────────────────── */
+  /* Aviso informativo verde */
   .info-banner {
     @apply flex items-center gap-2 rounded-lg bg-forest-700/5 px-4 py-3 text-sm text-forest-800;
   }
@@ -136,7 +136,7 @@
     box-shadow: 0 14px 32px rgba(22, 33, 26, 0.18);
   }
 
-  /* ─── Badge ────────────────────────────────────────────────────── */
+  /* Insignia o etiqueta */
   .badge {
     @apply inline-flex items-center rounded-full border border-surface-200 bg-white
            px-3 py-1 text-xs font-medium text-ink-700;

@@ -1,3 +1,5 @@
+// Campo de texto reutilizable
+
 import { forwardRef, type InputHTMLAttributes } from "react";
 import clsx from "@/lib/clsx";
 

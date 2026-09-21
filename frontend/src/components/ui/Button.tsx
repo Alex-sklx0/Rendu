@@ -1,3 +1,5 @@
+// Boton reutilizable con estilos segun la variante
+
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import clsx from "@/lib/clsx";
 

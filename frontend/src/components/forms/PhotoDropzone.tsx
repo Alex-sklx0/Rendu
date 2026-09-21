@@ -1,3 +1,5 @@
+// Zona para subir fotos arrastrando o seleccionando archivos
+
 import { useState, useCallback, useRef, type DragEvent } from "react";
 import clsx from "@/lib/clsx";
 
@@ -80,7 +82,7 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5, onPrimaryImageChang
 
   return (
     <div className="space-y-3">
-      {/* Previews */}
+      {/* Vista previa de las fotos subidas */}
       {showPreviews && previews.length > 0 && (
         <div className="flex gap-3 flex-wrap">
           {previews.map((p, i) => (
@@ -105,7 +107,7 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5, onPrimaryImageChang
         </div>
       )}
 
-      {/* Dropzone */}
+      {/* Zona para arrastrar o seleccionar archivos */}
       {previews.length < maxFiles && (
         <div
           onDragOver={handleDragOver}
@@ -113,7 +115,7 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5, onPrimaryImageChang
           onDrop={handleDrop}
           className={clsx("dropzone", isDragOver && "dropzone-active")}
         >
-          {/* Upload icon */}
+          {/* Icono de subida */}
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-forest-700/10 text-forest-700">
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -1,14 +1,9 @@
+// Servicio para manejo de archivos e imagenes en Supabase Storage
+
 import crypto from 'node:crypto';
 import { supabase } from '../config/db.js';
 
-/**
- * Extrae la ruta relativa dentro del bucket (ej. "subproductos/uuid.png")
- * a partir de cualquier URL pública de Supabase Storage.
- *
- * @param {string} url - URL pública completa de Supabase Storage
- * @param {string} [bucketName='Imagenes'] - Nombre del bucket
- * @returns {string|null} Ruta relativa dentro del bucket
- */
+// Extrae la ruta de un archivo dentro del bucket desde su URL publica
 export function extractStoragePath(url, bucketName = 'Imagenes') {
   if (!url || typeof url !== 'string') return null;
   const marker = `/${bucketName}/`;
@@ -19,12 +14,7 @@ export function extractStoragePath(url, bucketName = 'Imagenes') {
   return decodeURIComponent(pathWithoutQuery);
 }
 
-/**
- * Elimina un archivo de Supabase Storage a partir de su URL pública o su path relativo.
- *
- * @param {string} urlOrPath - URL pública completa o path relativo
- * @param {string} [bucketName='Imagenes'] - Nombre del bucket
- */
+// Elimina un archivo de Supabase Storage usando su URL o ruta
 export async function deleteStorageFile(urlOrPath, bucketName = 'Imagenes') {
   if (!urlOrPath || typeof urlOrPath !== 'string') return;
   
@@ -37,30 +27,22 @@ export async function deleteStorageFile(urlOrPath, bucketName = 'Imagenes') {
   try {
     const { data, error } = await supabase.storage.from(bucketName).remove([path]);
     if (error) {
-      console.warn(`[StorageService] Error al eliminar archivo '${path}' de Supabase Storage:`, error.message);
+      console.warn(`[StorageService] Error al eliminar archivo '${path}':`, error.message);
     } else {
-      console.log(`[StorageService] Archivo '${path}' eliminado exitosamente de Supabase Storage.`, data);
+      console.log(`[StorageService] Archivo '${path}' eliminado exitosamente.`, data);
     }
   } catch (err) {
     console.warn(`[StorageService] Excepción al eliminar archivo '${path}':`, err.message);
   }
 }
 
-/**
- * Sube una nueva imagen o reemplaza una existente en Supabase Storage.
- * Si se especifica `existingUrl`, borra automáticamente la imagen vieja de Storage antes de guardar la nueva.
- *
- * @param {string|Buffer} imageInput - Base64, Data URI o Buffer de la imagen
- * @param {string} [folder='subproductos'] - Carpeta relativa dentro del bucket
- * @param {string|null} [existingUrl=null] - URL previa existente (para eliminar la imagen vieja)
- * @returns {Promise<string|null>} URL pública de la nueva imagen en Supabase Storage
- */
+// Sube o reemplaza una imagen en Supabase Storage
 export async function uploadImageToStorage(imageInput, folder = 'subproductos', existingUrl = null) {
   if (!imageInput || (typeof imageInput !== 'string' && !Buffer.isBuffer(imageInput))) {
     return null;
   }
 
-  // Si la entrada ya es una URL HTTP/HTTPS pública existente y no ha cambiado, mantenerla
+  // Si ya es una URL valida, no la procesamos de nuevo
   if (typeof imageInput === 'string' && (imageInput.startsWith('http://') || imageInput.startsWith('https://'))) {
     return imageInput;
   }
@@ -69,6 +51,7 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
   let ext = 'jpg';
   let mimeType = 'image/jpeg';
 
+  // Convertir formato base64 o buffer a archivo usable
   if (typeof imageInput === 'string' && imageInput.startsWith('data:')) {
     const matches = imageInput.match(/^data:(image\/(\w+));base64,(.+)$/);
     if (matches) {
@@ -85,12 +68,12 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
     buffer = imageInput;
   }
 
-  // 1. SI EXISTE UNA IMAGEN VIEJA: Borrarla de Supabase Storage
+  // Borrar imagen anterior en caso de reemplazo
   if (existingUrl) {
     await deleteStorageFile(existingUrl, 'Imagenes');
   }
 
-  // 2. SUBIR LA NUEVA IMAGEN con ID único fresco (para refrescar caché inmediatamente)
+  // Generar nombre unico y subir archivo
   const uniqueFileName = `${folder}/${crypto.randomUUID()}.${ext}`;
 
   const { data: uploadData, error: uploadError } = await supabase.storage
@@ -105,7 +88,7 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
     throw new Error(`Error al subir imagen a Storage: ${uploadError.message}`);
   }
 
-  // 3. OBTENER Y RETORNAR LA NUEVA URL PÚBLICA
+  // Generar URL publica para guardar en la BD
   const { data: publicUrlData } = supabase.storage
     .from('Imagenes')
     .getPublicUrl(uploadData.path);
@@ -118,9 +101,7 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
   return publicUrl;
 }
 
-/**
- * Servicio completo para verificar usuario autenticado, subir/actualizar imagen en Supabase Storage y crear registro en BD.
- */
+// Helper para subir imagen y registrar post
 export async function subirImagenYCrearPost({
   fileBuffer,
   originalName = 'imagen.jpg',
@@ -157,6 +138,7 @@ export async function subirImagenYCrearPost({
       payload = Buffer.from(fileBuffer, 'base64');
     }
 
+    // Subir imagen al bucket
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('Imagenes')
       .upload(filePath, payload, {
@@ -177,6 +159,7 @@ export async function subirImagenYCrearPost({
       throw new Error('No se pudo generar la URL pública de la imagen.');
     }
 
+    // Crear registro en la tabla indicada
     const rowToInsert = tableName === 'subproductos'
       ? {
           foto_url: imageUrl,

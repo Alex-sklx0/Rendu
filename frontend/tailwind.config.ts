@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
-// Design tokens — PLACEHOLDER palette until real Figma references are provided.
-// See .agents/skills/rendu-frontend/SKILL.md → "Visual direction — waiting on Figma".
+// Paleta de colores de la marca (tokens de diseno de Tailwind)
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {

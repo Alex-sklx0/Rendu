@@ -1,3 +1,5 @@
+// Pagina de perfil del usuario
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getMisPublicaciones, getCatalogo, eliminarSubproducto, eliminarCuenta, actualizarSubproducto } from "@/api/client";
@@ -44,6 +46,7 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
+  // Cerrar sesion limpiando los datos locales
   function handleLogout() {
     localStorage.removeItem("user");
     localStorage.removeItem("isAuthenticated");
@@ -51,6 +54,7 @@ export default function ProfilePage() {
     navigate("/catalog");
   }
 
+  // Eliminar la cuenta del usuario tras confirmar
   async function handleDeleteAccount() {
     const confirm = window.confirm(
       "¿Estás seguro de que deseas eliminar tu cuenta?\n\nEsta acción es irreversible y eliminará todos tus datos, empresa y subproductos asociados."
@@ -70,6 +74,7 @@ export default function ProfilePage() {
     }
   }
 
+  // Eliminar un subproducto propio
   async function handleDeleteSubproducto(id: string, nombre: string) {
     const confirm = window.confirm(`¿Estás seguro de que deseas eliminar el material "${nombre}"?`);
     if (!confirm) return;
@@ -84,6 +89,7 @@ export default function ProfilePage() {
     }
   }
 
+  // Cambiar la disponibilidad de una publicacion
   async function handleToggleDisponibilidad(publicacion: SubproductoDetalle) {
     const currentDisponibilidad = publicacion.disponible !== false;
     const newDisponibilidad = !currentDisponibilidad;
@@ -110,6 +116,7 @@ export default function ProfilePage() {
   }
 
 
+  // Cuenta cuantos materiales del catalogo coinciden con la publicacion
   function getMatchesForSubproducto(p: SubproductoDetalle): number {
     return catalogo.filter(
       (c) => (c.id_familia === p.id_familia || c.familia === p.familia) && String(c.id) !== String(p.id)
@@ -137,7 +144,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1.05fr_1.05fr_0.7fr]">
-        {/* Profile Info Card */}
+        {/* Tarjeta de informacion del perfil */}
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
           <div className="flex items-center gap-3 border-b border-surface-100 pb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#dff4ed] font-bold text-[#00805b]">
@@ -188,7 +195,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Resumen Stats Card */}
+        {/* Tarjeta de resumen de estadisticas */}
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
           <h2 className="text-xs font-bold text-ink-700">Resumen</h2>
           <div className="mt-3 grid grid-cols-2 gap-y-4">
@@ -201,7 +208,7 @@ export default function ProfilePage() {
 
       </div>
 
-      {/* Section Content: Persona Natural vs Empresa */}
+      {/* Contenido segun el tipo de usuario: persona o empresa */}
       {userData && !userData.id_empresa ? (
         <section className="mt-4 rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-surface-200">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#dff4ed] text-3xl text-[#00805b]">
@@ -221,7 +228,7 @@ export default function ProfilePage() {
           </div>
         </section>
       ) : (
-        /* Publications Table for Empresas */
+        /* Tabla de publicaciones de la empresa */
         <section className="mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-bold text-ink-900">Mis publicaciones</h2>

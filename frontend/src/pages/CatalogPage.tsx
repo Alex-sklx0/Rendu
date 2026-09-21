@@ -37,7 +37,7 @@ export default function CatalogPage() {
 
   return (
     <div className="mx-auto max-w-6xl pb-16">
-      {/* ── Page Header ───────────────────────────────────────────── */}
+      {/* Encabezado */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">
           Catálogo de materiales
@@ -47,7 +47,7 @@ export default function CatalogPage() {
         </p>
       </div>
 
-      {/* ── Search Bar ────────────────────────────────────────────── */}
+      {/* barra de busqueda */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-400">
@@ -75,7 +75,7 @@ export default function CatalogPage() {
           />
         </div>
 
-        {/* Municipio select filter */}
+        {/* filtro de municipios */}
         <select
           value={activeMunicipio}
           onChange={(e) => setActiveMunicipio(e.target.value)}
@@ -90,7 +90,7 @@ export default function CatalogPage() {
         </select>
       </div>
 
-      {/* ── Category Chips ────────────────────────────────────────── */}
+      {/* filtro de categorías */}
       <div className="mb-8 flex flex-wrap gap-2 overflow-x-auto pb-1">
         <button
           type="button"
@@ -122,7 +122,7 @@ export default function CatalogPage() {
         })}
       </div>
 
-      {/* ── Content / Grid ────────────────────────────────────────── */}
+      {/* malla de subproductos */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="flex flex-col items-center gap-3">

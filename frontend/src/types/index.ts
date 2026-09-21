@@ -1,3 +1,5 @@
+// Tipos de usuario, empresa y subproducto usados en la app
+
 import type { UnidadVolumen } from "@/lib/constants";
 
 // Estos tipos reflejan /docs/api-contract.md. Si el backend define una forma distinta,

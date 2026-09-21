@@ -1,3 +1,5 @@
+// Campo de formulario con etiqueta, mensaje de error y ayuda
+
 import type { ReactNode } from "react";
 
 type FormFieldProps = {

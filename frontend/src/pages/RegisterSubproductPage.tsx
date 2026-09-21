@@ -1,3 +1,5 @@
+// Pagina para registrar un nuevo subproducto
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,11 +70,11 @@ export default function RegisterSubproductPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* ─── Page Header ───────────────────────────────────────── */}
+      {/* Encabezado de la pagina */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            {/* Recycle icon */}
+            {/* Icono de reciclaje */}
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F5233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5" />
               <path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12" />
@@ -95,12 +97,12 @@ export default function RegisterSubproductPage() {
         <span className="badge mt-1">Borrador</span>
       </div>
 
-      {/* ─── Stepper ───────────────────────────────────────────── */}
+      {/* Indicador de pasos */}
       <div className="card mb-8 !py-6">
         <Stepper steps={STEPS} currentStep={currentStep} />
       </div>
 
-      {/* ─── Banners ───────────────────────────────────────────── */}
+      {/* Mensajes de error o exito */}
       {submitError && (
         <div className="mb-6">
           <Banner variant="error">{submitError}</Banner>
@@ -112,11 +114,11 @@ export default function RegisterSubproductPage() {
         </div>
       )}
 
-      {/* ─── Form ──────────────────────────────────────────────── */}
+      {/* Formulario de registro */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="card mb-6">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-8">
-            {/* ── Left Column: Photos ──────────────────────────── */}
+            {/* Columna izquierda con las fotos */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-ink-900">Fotografías</h2>
@@ -125,7 +127,7 @@ export default function RegisterSubproductPage() {
               <PhotoDropzone maxFiles={3} maxSizeMB={5} />
             </div>
 
-            {/* ── Right Column: Fields ─────────────────────────── */}
+            {/* Columna derecha con los campos del formulario */}
             <div className="space-y-5">
               <FormField
                 label="Nombre del subproducto"
@@ -220,7 +222,7 @@ export default function RegisterSubproductPage() {
           </div>
         </div>
 
-        {/* ─── Location Info Banner ────────────────────────────── */}
+        {/* Aviso sobre la ubicacion */}
         <div className="info-banner mb-8">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -229,7 +231,7 @@ export default function RegisterSubproductPage() {
           La ubicación exacta solo será visible para contactos autorizados.
         </div>
 
-        {/* ─── Footer Actions ──────────────────────────────────── */}
+        {/* Botones de volver, guardar borrador y continuar */}
         <div className="flex items-center justify-between">
           <Button
             type="button"

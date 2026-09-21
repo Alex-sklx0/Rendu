@@ -1,3 +1,5 @@
+// Pagina con el detalle de un subproducto
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getSubproductoDetalle } from "@/api/client";
@@ -68,7 +70,7 @@ export default function SubproductDetailPage() {
 
   return (
     <div className="mx-auto max-w-5xl pb-16">
-      {/* ── Back button ───────────────────────────────────────────── */}
+      {/* Boton para volver al catalogo */}
       <div className="mb-6">
         <button
           type="button"
@@ -93,9 +95,9 @@ export default function SubproductDetailPage() {
         </button>
       </div>
 
-      {/* ── Main Layout Split ─────────────────────────────────────── */}
+      {/* Distribucion de la pagina en dos columnas */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Left Column: Visual Image Banner */}
+        {/* Columna izquierda con la foto */}
         <div className="lg:col-span-5">
           <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
             {!isDisponible && (
@@ -119,7 +121,7 @@ export default function SubproductDetailPage() {
             )}
           </div>
 
-          {/* Quick specs pill on mobile/desktop */}
+          {/* Datos rapidos del material */}
           <div className="mt-4 rounded-xl border border-surface-200 bg-white p-4 text-xs text-ink-500 shadow-sm">
             <div className="flex items-center justify-between">
               <span>Estado:</span>
@@ -136,10 +138,10 @@ export default function SubproductDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Details & Contact */}
+        {/* Columna derecha con detalles y contacto */}
         <div className="lg:col-span-7">
           <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
-            {/* Out of Stock Warning Banner */}
+            {/* Aviso de material sin stock */}
             {!isDisponible && (
               <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
                 <span className="text-2xl leading-none">⚠️</span>
@@ -152,7 +154,7 @@ export default function SubproductDetailPage() {
               </div>
             )}
 
-            {/* Category badge */}
+            {/* Categoria del material */}
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-1 text-xs font-bold text-forest-700">
                 {subproducto.familia}
@@ -164,17 +166,17 @@ export default function SubproductDetailPage() {
               )}
             </div>
 
-            {/* Title */}
+            {/* Nombre del material */}
             <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
               {subproducto.nombre}
             </h1>
 
-            {/* Company / Publisher */}
+            {/* Empresa que publica el material */}
             <p className="mt-1 text-sm font-medium text-ink-500">
               Publicación de <span className="font-semibold text-ink-800">{subproducto.usuario || subproducto.empresa}</span>
             </p>
 
-            {/* Stats Boxes */}
+            {/* Datos de cantidad disponible y ubicacion */}
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-[#f6f8f7] p-4 border border-surface-200">
                 <span className="block text-xl font-extrabold text-ink-900">
@@ -193,7 +195,7 @@ export default function SubproductDetailPage() {
               </div>
             </div>
 
-            {/* Description Section */}
+            {/* Seccion de descripcion */}
             <div className="mt-6 border-t border-surface-100 pt-6">
               <h2 className="text-sm font-bold uppercase tracking-wider text-ink-700">
                 Descripción
@@ -204,7 +206,7 @@ export default function SubproductDetailPage() {
             </div>
 
           
-            {/* CTA Contact Button */}
+            {/* Boton para contactar a la empresa */}
             <div className="mt-8 border-t border-surface-100 pt-6">
               {contactado ? (
                 <div className="rounded-xl bg-[#dff4ed] p-4 text-center text-sm font-semibold text-forest-800">

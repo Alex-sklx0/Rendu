@@ -1,3 +1,5 @@
+// Pagina de inicio de sesion
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
@@ -9,8 +11,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Envio del formulario de logeo
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+  
+    // Validacion de campos requeridos
     if (!email || !password) {
       setError("Por favor completa tu correo y contraseña.");
       return;
@@ -18,6 +23,8 @@ export default function LoginPage() {
     setError(null);
     try {
       const res = await loginUsuario({ email, password });
+
+      // Guardar datos de sesion localmente
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({
         id: res.usuario.id,
@@ -25,6 +32,8 @@ export default function LoginPage() {
         nombre: res.usuario.nombre || res.empresa?.nombre || email.split('@')[0],
         id_empresa: res.usuario.id_empresa || res.empresa?.id || null,
       }));
+
+      // Redirigir al catalogo
       navigate("/catalog");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
@@ -34,12 +43,12 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm sm:p-10">
-        {/* ── Logo ─────────────────────────────────────────────────── */}
+        {/* Logo */}
         <div className="flex justify-center mb-4">
           <RenduLogo size="lg" />
         </div>
 
-        {/* ── Title & Subtitle ─────────────────────────────────────── */}
+        {/* Titulo y subtitulo */}
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-ink-900">
             Inicio de sesión
@@ -55,7 +64,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* ── Form ─────────────────────────────────────────────────── */}
+        {/* Formulario de login */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-ink-800 mb-1.5" htmlFor="email">
@@ -95,12 +104,12 @@ export default function LoginPage() {
           </div>
         </form>
 
-        {/* ── Divider 'o' ──────────────────────────────────────────── */}
+        {/* Separador "o" */}
         <div className="my-5 flex items-center justify-center">
           <span className="text-xs font-medium text-ink-400">o</span>
         </div>
 
-        {/* ── Secondary CTA: Registrar mi empresa / Registrarse ────── */}
+        {/* Enlace para registrarse */}
         <div className="space-y-3">
           <Link
             to="/pre-register"

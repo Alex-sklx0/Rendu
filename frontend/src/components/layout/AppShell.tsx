@@ -1,3 +1,5 @@
+// Estructura principal de la app con encabezado y contenido
+
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import notifyImg from "@/img/notify.png";
@@ -31,18 +33,18 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-50">
-      {/* ─── Header matching header.png ──────────────────────────── */}
+      {/* Encabezado superior */}
       {!isStandaloneScreen && (
         <header className="sticky top-0 z-40 bg-white shadow-lg border-b border-surface-200 rounded-b-[30px]">
           <div className="mx-auto grid h-20 max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6">
-            {/* Left: Rendu Box Logo */}
+            {/* Logo de Rendu a la izquierda */}
             <NavLink to="/catalog" className="flex items-center gap-2 justify-self-start group">
               <RenduLogo size="header" showText={false} />
             </NavLink>
 
-            {/* Center: Action Pills (+ Publicar · ⌂ Catalogo · ↔ Matching) */}
+            {/* Navegacion principal */}
             <nav className="flex items-center gap-2 justify-self-center sm:gap-3">
-              {/* + Publicar (Oculto para usuarios tipo Persona / Reciclador individual) */}
+              {/* Boton para publicar, oculto para usuarios persona */}
               {!isPersona && (
                 <NavLink
                   to={isAuthenticated ? "/post-subproduct" : "/login"}
@@ -59,7 +61,7 @@ export function AppShell() {
                 </NavLink>
               )}
 
-              {/* Catalogo */}
+              {/* Enlace al catalogo */}
               <NavLink
                 to="/catalog"
                 className={({ isActive }) =>
@@ -77,7 +79,7 @@ export function AppShell() {
                 <span>Catalogo</span>
               </NavLink>
 
-              {/* ↔ Matching */}
+              {/* Enlace al matching */}
               <NavLink
                 to="/matching"
                 className={({ isActive }) =>
@@ -93,9 +95,9 @@ export function AppShell() {
               </NavLink>
             </nav>
 
-            {/* Right: Bell Notification & User Profile Avatar */}
+            {/* Notificaciones y avatar del usuario */}
             <div className="flex items-center gap-3 justify-self-end">
-              {/* Bell Icon using notify.png */}
+              {/* Icono de notificaciones */}
               <button
                 type="button"
                 className="relative rounded-full p-2 text-ink-900 transition-colors hover:bg-surface-100"
@@ -108,7 +110,7 @@ export function AppShell() {
                 />
               </button>
 
-              {/* User Profile Avatar -> Clicking when logged in takes to /profile, else /login */}
+              {/* Avatar del usuario, lleva al perfil o al login */}
               <Link
                 to={isAuthenticated ? "/profile" : "/login"}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d9d9d9] text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner"
@@ -134,7 +136,7 @@ export function AppShell() {
         </header>
       )}
 
-      {/* ─── Main Content ────────────────────────────────────────── */}
+      {/* Contenido principal de la pagina */}
       <main className="flex-1">
         {isStandaloneScreen ? (
           <Outlet />

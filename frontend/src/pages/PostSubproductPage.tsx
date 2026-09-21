@@ -1,3 +1,5 @@
+// Pagina para publicar un nuevo subproducto
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -126,7 +128,7 @@ export default function PostSubproductPage() {
 
   return (
     <div className="mx-auto max-w-3xl pb-16">
-      {/* ── Back button ───────────────────────────────────────────── */}
+      {/* Boton para volver al catalogo */}
       <div className="mb-4">
         <button
           type="button"
@@ -151,7 +153,7 @@ export default function PostSubproductPage() {
         </button>
       </div>
 
-      {/* ── Page Header ───────────────────────────────────────────── */}
+      {/* Encabezado de la pagina */}
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight text-forest-900 sm:text-4xl">
           Publicar material
@@ -161,7 +163,7 @@ export default function PostSubproductPage() {
         </p>
       </div>
 
-      {/* ── Banners ───────────────────────────────────────────────── */}
+      {/* Mensajes de error o exito */}
       {submitError && (
         <div className="mb-6">
           <Banner variant="error">{submitError}</Banner>
@@ -175,11 +177,11 @@ export default function PostSubproductPage() {
         </div>
       )}
 
-      {/* ── Form Card ─────────────────────────────────────────────── */}
+      {/* Formulario de publicacion */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="space-y-6">
-            {/* Grid row 1: Tipo de material y Cantidad */}
+            {/* Tipo de material y cantidad */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormField
                 label="Tipo de material"
@@ -229,7 +231,7 @@ export default function PostSubproductPage() {
               </FormField>
             </div>
 
-            {/* Grid row 2: Frecuencia y Ubicación */}
+            {/* Frecuencia y ubicacion */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label className="field-label" htmlFor="frecuencia">
@@ -262,7 +264,7 @@ export default function PostSubproductPage() {
               </FormField>
             </div>
 
-            {/* Grid row 3: Familia de clasificación */}
+            {/* Familia del material */}
             <FormField
               label="Familia de material"
               htmlFor="id_familia"
@@ -275,7 +277,7 @@ export default function PostSubproductPage() {
               />
             </FormField>
 
-            {/* Grid row 4: Descripción */}
+            {/* Descripcion del material */}
             <FormField
               label="Descripción"
               htmlFor="descripcion"
@@ -291,7 +293,7 @@ export default function PostSubproductPage() {
               />
             </FormField>
 
-            {/* Grid row 5: Foto del material */}
+            {/* Foto del material */}
             <div className="grid gap-4 sm:grid-cols-[1fr_192px] sm:items-end">
               <div>
                 <label className="field-label">Foto del material</label>
@@ -307,7 +309,7 @@ export default function PostSubproductPage() {
             </div>
           </div>
 
-          {/* ── Form Actions ────────────────────────────────────────── */}
+          {/* Botones de publicar o cancelar */}
           <div className="mt-8 flex items-center justify-start gap-3 border-t border-surface-100 pt-6">
             <button
               type="submit"

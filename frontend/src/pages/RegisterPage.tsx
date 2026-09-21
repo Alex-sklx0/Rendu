@@ -1,3 +1,5 @@
+// Pagina para crear una cuenta de persona o empresa
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,13 +25,13 @@ export default function RegisterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  // Persona form
+  // Formulario de persona
   const personaForm = useForm<PersonaFormValues>({
     resolver: zodResolver(personaSchema),
     defaultValues: { aceptar_terminos: false },
   });
 
-  // Empresa form
+  // Formulario de empresa
   const empresaForm = useForm<EmpresaRegistroFormValues>({
     resolver: zodResolver(empresaRegistroSchema),
     defaultValues: { aceptar_terminos: false },
@@ -78,7 +80,7 @@ export default function RegisterPage() {
 
   return (
     <div className="register-card">
-      {/* Header */}
+      {/* Encabezado */}
       <div className="text-center mb-8">
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-forest-600 mb-2">
           Únete a la circularidad
@@ -93,14 +95,14 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* Tabs: Persona / Empresa */}
+      {/* Pestañas para elegir persona o empresa */}
       <div className="tab-group mb-8">
         <button
           type="button"
           className={clsx("tab-button", activeTab === "persona" && "tab-button-active")}
           onClick={() => { setActiveTab("persona"); setSubmitError(null); }}
         >
-          {/* Person icon */}
+          {/* Icono de persona */}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -112,7 +114,7 @@ export default function RegisterPage() {
           className={clsx("tab-button", activeTab === "empresa" && "tab-button-active")}
           onClick={() => { setActiveTab("empresa"); setSubmitError(null); }}
         >
-          {/* Building icon */}
+          {/* Icono de edificio */}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
             <path d="M9 22v-4h6v4" />
@@ -136,7 +138,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* ─── Persona Form ──────────────────────────────────────── */}
+      {/* Formulario de persona */}
       {activeTab === "persona" && (
         <form
           className="space-y-5"
@@ -189,7 +191,7 @@ export default function RegisterPage() {
             />
           </FormField>
 
-          {/* Terms checkbox */}
+          {/* Aceptar terminos y condiciones */}
           <label className="flex items-center gap-3 cursor-pointer select-none group">
             <input
               type="checkbox"
@@ -226,7 +228,7 @@ export default function RegisterPage() {
         </form>
       )}
 
-      {/* ─── Empresa Form ──────────────────────────────────────── */}
+      {/* Formulario de empresa */}
       {activeTab === "empresa" && (
         <form
           className="space-y-5"
@@ -292,7 +294,7 @@ export default function RegisterPage() {
             />
           </FormField>
 
-          {/* Terms checkbox */}
+          {/* Aceptar terminos y condiciones */}
           <label className="flex items-center gap-3 cursor-pointer select-none group">
             <input
               type="checkbox"
@@ -329,7 +331,7 @@ export default function RegisterPage() {
         </form>
       )}
 
-      {/* Footer link */}
+      {/* Enlace para ir al login */}
       <p className="text-center text-sm text-ink-500 mt-6">
         ¿Ya tienes una cuenta?{" "}
         <Link

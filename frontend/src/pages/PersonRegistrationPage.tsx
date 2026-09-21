@@ -1,3 +1,5 @@
+// Pagina para el registro de personas naturales o recicladores
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
@@ -15,8 +17,11 @@ export default function PersonRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Envio del formulario de registro
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validacion de campos requeridos
     if (!email || !password || !cedula.trim()) {
       setError("Por favor completa correo, contraseña y cédula.");
       return;
@@ -26,9 +31,11 @@ export default function PersonRegistrationPage() {
     setError(null);
     try {
       const nombreFinal = nombre.trim() || email.split("@")[0];
+      
+      // 1. Registrar cuenta de usuario
       const user = await registrarUsuario({ email, password });
 
-      // Insertar en tabla `personas` con datos reales del reciclador
+      // 2. Registrar perfil de persona natural
       await registrarPersona({
         id_usuario: user.id,
         nombre: nombreFinal,
@@ -37,6 +44,7 @@ export default function PersonRegistrationPage() {
         id_rol: tipoActividad === "Reciclador" ? 3 : 2,
       });
 
+      // Guardar sesion localmente
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({
         id: user.id,
@@ -44,6 +52,8 @@ export default function PersonRegistrationPage() {
         nombre: nombreFinal,
         id_empresa: null,
       }));
+
+      // Redirigir al usuario
       navigate("/communication");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar.");
@@ -55,12 +65,13 @@ export default function PersonRegistrationPage() {
   return (
     <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm sm:p-10">
-        {/* ── Logo ─────────────────────────────────────────────────── */}
+        
+        {/* Logo principal */}
         <div className="flex justify-center mb-4">
           <RenduLogo size="lg" />
         </div>
 
-        {/* ── Title & Subtitle ─────────────────────────────────────── */}
+        {/* Titulo y subtitulo */}
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-ink-900">
             Hablanos de tu persona
@@ -70,15 +81,17 @@ export default function PersonRegistrationPage() {
           </p>
         </div>
 
+        {/* Mensaje de error */}
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 p-3 text-center text-xs font-semibold text-red-600">
             {error}
           </div>
         )}
 
-        {/* ── Form ─────────────────────────────────────────────────── */}
+        {/* Formulario de registro */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Row 1: Nombre & Cédula */}
+          
+          {/* Nombre y Cedula */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="nombre">
@@ -109,7 +122,7 @@ export default function PersonRegistrationPage() {
             </div>
           </div>
 
-          {/* Row 2: Municipio & Tipo de actividad */}
+          {/* Municipio y Tipo de actividad */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="municipio">
@@ -159,7 +172,7 @@ export default function PersonRegistrationPage() {
             </div>
           </div>
 
-          {/* Row 3: Correo empresarial */}
+          {/* Correo personal / empresarial */}
           <div>
             <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="email">
               Correo empresarial
@@ -174,7 +187,7 @@ export default function PersonRegistrationPage() {
             />
           </div>
 
-          {/* Row 4: Contraseña */}
+          {/* Contraseña */}
           <div>
             <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="password">
               Contraseña
@@ -189,7 +202,7 @@ export default function PersonRegistrationPage() {
             />
           </div>
 
-          {/* ── Actions ──────────────────────────────────────────────── */}
+          {/* Botones de accion */}
           <div className="space-y-2.5 pt-3">
             <button
               type="submit"

@@ -1,29 +1,31 @@
+// Pagina para elegir entre registrarse como persona o empresa
+
 import { Link } from "react-router-dom";
 
 export default function PreRegisterPage() {
   return (
     <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
       <div className="relative w-full max-w-xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
-        {/* ── Green Left & Bottom Corner Accent ────────────────────── */}
+        {/* Decoracion verde de la esquina */}
         <div className="pointer-events-none absolute bottom-6 left-6 h-28 w-40 rounded-bl-2xl border-b-4 border-l-4 border-[#23ce6b]" />
         <div className="pointer-events-none absolute left-6 top-8 h-8 w-4 rounded-tl-xl border-l-4 border-t-4 border-[#23ce6b]" />
 
-        {/* ── Title ────────────────────────────────────────────────── */}
+        {/* Titulo */}
         <div className="relative z-10 text-center mb-10">
           <h1 className="text-xl font-extrabold text-ink-900 sm:text-2xl">
             Asi que... cuentanos, ¿Quién eres?
           </h1>
         </div>
 
-        {/* ── Two Selection Tiles ──────────────────────────────────── */}
+        {/* Opciones de registro: persona o empresa */}
         <div className="relative z-10 flex flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
-          {/* Persona Card */}
+          {/* Tarjeta de persona */}
           <Link
             to="/person-registration"
             className="group flex flex-col items-center transition-transform duration-200 hover:scale-105"
           >
             <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-[#eef4f8] shadow-md transition-shadow group-hover:shadow-lg border border-[#e1e9ee]">
-              {/* Single Person Icon */}
+              {/* Icono de persona */}
               <svg
                 width="64"
                 height="64"
@@ -45,13 +47,13 @@ export default function PreRegisterPage() {
             </span>
           </Link>
 
-          {/* Empresa Card */}
+          {/* Tarjeta de empresa */}
           <Link
             to="/company-registration"
             className="group flex flex-col items-center transition-transform duration-200 hover:scale-105"
           >
             <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-[#eef4f8] shadow-md transition-shadow group-hover:shadow-lg border border-[#e1e9ee]">
-              {/* Team / Multiple People Icon */}
+              {/* Icono de varias personas */}
               <svg
                 width="64"
                 height="64"
@@ -59,7 +61,7 @@ export default function PreRegisterPage() {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                {/* Center person */}
+                {/* Persona del centro */}
                 <circle cx="32" cy="22" r="7" stroke="#18322d" strokeWidth="2.5" />
                 <path
                   d="M20 48C20 38 25 34 32 34C39 34 44 38 44 48"
@@ -67,7 +69,7 @@ export default function PreRegisterPage() {
                   strokeWidth="2.5"
                   strokeLinecap="round"
                 />
-                {/* Left person */}
+                {/* Persona de la izquierda */}
                 <circle cx="20" cy="26" r="5" stroke="#18322d" strokeWidth="2.5" />
                 <path
                   d="M11 48C11 41 15 38 19 37"
@@ -75,7 +77,7 @@ export default function PreRegisterPage() {
                   strokeWidth="2.5"
                   strokeLinecap="round"
                 />
-                {/* Right person */}
+                {/* Persona de la derecha */}
                 <circle cx="44" cy="26" r="5" stroke="#18322d" strokeWidth="2.5" />
                 <path
                   d="M45 37C49 38 53 41 53 48"
@@ -91,7 +93,7 @@ export default function PreRegisterPage() {
           </Link>
         </div>
 
-        {/* ── Footer Link ──────────────────────────────────────────── */}
+        {/* Enlace para iniciar sesion */}
         <div className="relative z-10 mt-12 text-center">
           <Link
             to="/login"

@@ -1,17 +1,12 @@
-/**
- * Controlador de subproductos (migrado de subproductos-service)
- * TODO (Carolina): implementar lógica real siguiendo /docs/api-contract.md
- *
- * POST /api/subproductos
- * Request:  { id_empresa, nombre, descripcion?, id_familia, volumen_disponible, unidad_volumen, municipio }
- * Response: { id, nombre, familia, volumen_disponible, unidad_volumen, municipio, estado_publicacion, disponible }
- */
+// Controlador para la gestion de subproductos
 
 import { supabase } from '../config/db.js';
 import { deleteStorageFile, uploadImageToStorage } from '../services/storage.service.js';
 
+// Campos a seleccionar en las consultas de subproductos
 const fields = 'id, id_empresa, nombre, descripcion, id_familia_material, volumen_disponible, id_unidad_medida, id_municipio, direccion, foto_url, fecha_registro, disponible';
 
+// Mapeo de nombres de familias para normalizar busquedas
 const FAMILY_MAP = {
   'papel_carton': 'Papel y cartón',
   'papel y carton': 'Papel y cartón',
@@ -25,6 +20,7 @@ const FAMILY_MAP = {
   'madera': 'Madera',
 };
 
+// Mapeo de unidades de medida
 const UNIT_MAP = {
   'kg': 'kg',
   'kilogramo': 'kg',
@@ -38,6 +34,7 @@ const UNIT_MAP = {
   'unidades': 'kg',
 };
 
+// Busca el ID correspondiente en tablas de referencia (familias, unidades, municipios)
 async function resolveId(table, value, nameField = 'nombre') {
   if (value === undefined || value === null || value === '') return undefined;
 
@@ -73,6 +70,7 @@ async function resolveId(table, value, nameField = 'nombre') {
   return data?.id;
 }
 
+// Formatea los datos del subproducto uniendo los nombres de empresa, municipio, etc.
 async function present(item) {
   const [family, unit, municipality, company] = await Promise.all([
     supabase.from('familias_material').select('id, nombre').eq('id', item.id_familia_material).maybeSingle(),
@@ -103,19 +101,26 @@ async function present(item) {
   };
 }
 
+// Registra un nuevo subproducto en el sistema
 export async function registrarSubproducto(req, res, next) {
   try {
     const { id_empresa, nombre, descripcion, id_familia, id_familia_material, volumen_disponible, unidad_volumen, id_unidad_medida, municipio, id_municipio, direccion, image_url, disponible } = req.body;
+    
+    // Validacion de campos requeridos
     if (!id_empresa || !nombre || (!id_familia && !id_familia_material) || volumen_disponible === undefined || (!unidad_volumen && !id_unidad_medida) || (!municipio && !id_municipio)) {
       return res.status(400).json({ ok: false, error: 'Faltan campos obligatorios del subproducto.' });
     }
+    
+    // Validacion de volumen
     if (Number(volumen_disponible) < 0) return res.status(400).json({ ok: false, error: 'El volumen no puede ser negativo.' });
 
+    // Resolucion de IDs asociados
     const familyId = await resolveId('familias_material', id_familia_material ?? id_familia);
     const unitId = await resolveId('unidades_medida', id_unidad_medida ?? unidad_volumen, 'abreviatura');
     const municipalityId = await resolveId('municipios', id_municipio ?? municipio);
     if (!familyId || !unitId || !municipalityId) return res.status(400).json({ ok: false, error: 'Familia, unidad o municipio no existe.' });
 
+    // Validar que el usuario pertenezca a una empresa
     let companyId = undefined;
     if (id_empresa && /^\d+$/.test(String(id_empresa))) {
       companyId = Number(id_empresa);
@@ -124,24 +129,26 @@ export async function registrarSubproducto(req, res, next) {
       return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
     }
 
-    // Verificar en PostgreSQL que id_empresa corresponda a una empresa registrada
+    // Verificar en la base de datos que la empresa exista
     const { data: companyRow } = await supabase.from('empresas').select('id').eq('id', companyId).maybeSingle();
     if (!companyRow) {
       return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
     }
 
+    // Procesamiento y subida de la imagen
     let finalFotoUrl = null;
     const inputImage = req.body.image_base64 || image_url || req.body.foto_url;
     if (inputImage && typeof inputImage === 'string') {
       try {
         finalFotoUrl = await uploadImageToStorage(inputImage, 'subproductos');
       } catch (err) {
-        console.warn('[Subproductos] No se pudo subir a Supabase Storage, usando fallback URL:', err.message);
+        console.warn('[Subproductos] Fallback URL para la imagen:', err.message);
         finalFotoUrl = inputImage.trim().slice(0, 500);
       }
     }
     const isDisponible = disponible !== undefined ? Boolean(disponible) : true;
 
+    // Insercion del subproducto
     const { data, error } = await supabase.from('subproductos').insert({
       id_empresa: companyId, nombre, descripcion: descripcion || null, id_familia_material: familyId,
       volumen_disponible: Number(volumen_disponible), id_unidad_medida: unitId, id_municipio: municipalityId,
@@ -158,6 +165,7 @@ export async function registrarSubproducto(req, res, next) {
   }
 }
 
+// Endpoint independiente para subir imagen de subproducto
 export async function subirImagenSubproducto(req, res, next) {
   try {
     const { image, image_url, foto_url } = req.body;
@@ -177,6 +185,7 @@ export async function subirImagenSubproducto(req, res, next) {
   }
 }
 
+// Obtiene un subproducto por su ID
 export async function obtenerSubproducto(req, res, next) {
   try {
     const { data, error } = await supabase.from('subproductos').select(fields).eq('id', req.params.id).single();
@@ -188,6 +197,7 @@ export async function obtenerSubproducto(req, res, next) {
   }
 }
 
+// Revisa si la empresa es la dueña legitima del subproducto
 async function verificarPropietario(idSubproducto, idEmpresa) {
   const { data, error } = await supabase
     .from('subproductos')
@@ -205,29 +215,33 @@ async function verificarPropietario(idSubproducto, idEmpresa) {
   return { product: data };
 }
 
+// Actualiza un subproducto existente
 export async function actualizarSubproducto(req, res, next) {
   try {
     const { id } = req.params;
     const { id_empresa, volumen_disponible } = req.body;
 
+    // Validacion de empresa
     if (!id_empresa) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para actualizar un subproducto.' });
     }
 
+    // Validar permisos de propiedad
     const { product: existingProduct, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
     if (errorMessage) {
       return res.status(errorStatus).json({ ok: false, error: errorMessage });
     }
 
+    // Validar volumen
     if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
       return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero.' });
     }
 
     const currentFotoUrl = existingProduct?.foto_url || null;
-
     const allowed = ['nombre', 'descripcion', 'volumen_disponible', 'foto_url', 'direccion', 'disponible'];
     const changes = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
 
+    // Reemplazo de imagen si se envio una nueva
     if (Object.hasOwn(req.body, 'image_url') || Object.hasOwn(req.body, 'foto_url')) {
       const url = req.body.image_url || req.body.foto_url;
       if (url && typeof url === 'string') {
@@ -250,6 +264,7 @@ export async function actualizarSubproducto(req, res, next) {
     if (req.body.id_unidad_medida || req.body.unidad_volumen) changes.id_unidad_medida = await resolveId('unidades_medida', req.body.id_unidad_medida ?? req.body.unidad_volumen, 'abreviatura');
     if (req.body.id_municipio || req.body.municipio) changes.id_municipio = await resolveId('municipios', req.body.id_municipio ?? req.body.municipio);
 
+    // Guardar cambios en la base de datos
     const { data, error } = await supabase.from('subproductos').update(changes).eq('id', id).select(fields).single();
     if (error?.code === 'PGRST116') return res.status(404).json({ ok: false, error: 'Subproducto no encontrado.' });
     if (error) throw error;
@@ -259,6 +274,7 @@ export async function actualizarSubproducto(req, res, next) {
   }
 }
 
+// Obtiene las publicaciones propias de una empresa
 export async function misPublicaciones(req, res, next) {
   try {
     const { id_empresa } = req.query;
@@ -277,6 +293,7 @@ export async function misPublicaciones(req, res, next) {
   }
 }
 
+// Elimina un subproducto y su foto del storage
 export async function eliminarSubproducto(req, res, next) {
   try {
     const { id } = req.params;
@@ -286,15 +303,18 @@ export async function eliminarSubproducto(req, res, next) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para eliminar un subproducto.' });
     }
 
+    // Validar propiedad
     const { product, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
     if (errorMessage) {
       return res.status(errorStatus).json({ ok: false, error: errorMessage });
     }
 
+    // Eliminar foto del storage si existe
     if (product?.foto_url) {
       await deleteStorageFile(product.foto_url, 'Imagenes');
     }
 
+    // Eliminar registro
     const { error } = await supabase.from('subproductos').delete().eq('id', id);
     if (error) throw error;
     return res.json({ ok: true, mensaje: 'Subproducto eliminado exitosamente' });

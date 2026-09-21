@@ -1,3 +1,5 @@
+// Selector desplegable reutilizable
+
 import { forwardRef, type SelectHTMLAttributes } from "react";
 import clsx from "@/lib/clsx";
 

@@ -1,6 +1,7 @@
+// Configuracion de las rutas de la aplicacion
+
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
-import HomePage from "@/pages/HomePage";
 import RegisterSubproductPage from "@/pages/RegisterSubproductPage";
 import CatalogPage from "@/pages/CatalogPage";
 import SubproductDetailPage from "@/pages/SubproductDetailPage";
@@ -24,19 +25,21 @@ export const router = createBrowserRouter([
     path: "/",
     element: <AppShell />,
     children: [
+      // Rutas de las pantallas de bienvenida
       { index: true, element: <SplashPage /> },
-      { path: "home", element: <HomePage /> },
       { path: "splash", element: <SplashPage /> },
       { path: "splash1", element: <Splash1Page /> },
       { path: "splash2", element: <Splash2Page /> },
       { path: "splash3", element: <Splash3Page /> },
 
+      // Rutas de autenticacion y registro
       { path: "login", element: <LoginPage /> },
       { path: "pre-register", element: <PreRegisterPage /> },
       { path: "person-registration", element: <PersonRegistrationPage /> },
       { path: "company-registration", element: <CompanyRegistrationPage /> },
       { path: "communication", element: <CommunicationPage /> },
 
+      // Rutas principales de la plataforma
       { path: "catalog", element: <CatalogPage /> },
       { path: "catalog/:id", element: <SubproductDetailPage /> },
       { path: "profile", element: <ProfilePage /> },
@@ -44,6 +47,7 @@ export const router = createBrowserRouter([
       { path: "post-subproduct", element: <PostSubproductPage /> },
       { path: "matching", element: <MatchingPage /> },
 
+      // Redireccion de una ruta antigua de registro
       { path: "register", element: <Navigate to="/pre-register" replace /> },
       { path: "subproducts/new", element: <RegisterSubproductPage /> },
       { path: "*", element: <NotFoundPage /> },

@@ -1,3 +1,5 @@
+// Campo de texto largo para formularios
+
 import { forwardRef, type TextareaHTMLAttributes } from "react";
 import clsx from "@/lib/clsx";
 

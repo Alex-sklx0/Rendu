@@ -1,3 +1,5 @@
+// Tarjeta que muestra un subproducto del catalogo
+
 import { Link } from "react-router-dom";
 import type { SubproductoCatalogo } from "@/types";
 
@@ -14,7 +16,7 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
         ? "border-surface-200 hover:shadow-[0_12px_24px_rgba(35,206,107,0.28)]"
         : "border-amber-200 bg-amber-50/10 hover:shadow-[0_12px_24px_rgba(217,119,6,0.2)]"
     }`}>
-      {/* ── Visual Banner / Publisher Image ─────────────────────── */}
+      {/* Imagen o banner visual del material */}
       <div className="relative flex h-36 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-[#dceee8] to-[#b9ddd0]">
         {!isDisponible && (
           <div className="absolute top-2.5 right-2.5 z-10">
@@ -39,9 +41,9 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
         )}
       </div>
 
-      {/* ── Content Details ─────────────────────────────────────── */}
+      {/* Detalles del material */}
       <div className="flex flex-1 flex-col p-5">
-        {/* Category & Status Badge */}
+        {/* Categoria y estado */}
         <div className="mb-2 flex items-center justify-between gap-2">
           <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-2.5 py-0.5 text-xs font-bold text-forest-700">
             {subproducto.familia}
@@ -53,12 +55,12 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
           )}
         </div>
 
-        {/* Title */}
+        {/* Nombre del material */}
         <h3 className="line-clamp-1 text-lg font-bold text-ink-900">
           {subproducto.nombre}
         </h3>
 
-        {/* Quantity */}
+        {/* Cantidad disponible */}
         <p className="mt-1 text-xl font-extrabold text-ink-900">
           {subproducto.volumen_disponible.toLocaleString("es-CO")}{" "}
           <span className="text-sm font-medium text-ink-600">
@@ -66,12 +68,12 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
           </span>
         </p>
 
-        {/* Company & Location */}
+        {/* Empresa y municipio */}
         <p className="mt-1 text-xs text-ink-500">
           {subproducto.empresa} · {subproducto.municipio}
         </p>
 
-        {/* Action Button */}
+        {/* Boton para ver el detalle */}
         <div className="mt-5 pt-2">
           <Link
             to={`/catalog/${subproducto.id}`}

@@ -1,3 +1,5 @@
+// Pantalla de bienvenida con el logo
+
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import iconImg from "@/img/icon.png";
@@ -16,7 +18,7 @@ export default function SplashPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#eef2f0] px-4 select-none">
-      {/* Rendu Logo */}
+      {/* Logo de Rendu */}
       <Link
         to="/splash1"
         className="group flex flex-col items-center justify-center transition-transform duration-300 "

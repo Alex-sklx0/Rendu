@@ -1,3 +1,5 @@
+// Pagina para editar un subproducto
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { actualizarSubproducto, eliminarSubproducto, getSubproductoDetalle } from "@/api/client";
@@ -49,6 +51,7 @@ export default function UpdateSubproductPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  // Guardar los cambios del material
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!id) return;
@@ -73,6 +76,7 @@ export default function UpdateSubproductPage() {
     }
   }
 
+  // Eliminar el material tras confirmar
   async function handleDelete() {
     if (!id) return;
     const confirm = window.confirm(`¿Estás seguro de que deseas eliminar este material?`);
@@ -100,44 +104,17 @@ export default function UpdateSubproductPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-surface-200 sm:p-7">
+        {/* Datos basicos del material */}
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="field-label">Tipo de material<input className="field-input mt-1" value={form.nombre} onChange={(event) => updateField("nombre", event.target.value)} required /></label>
           <label className="field-label">Cantidad disponible<div className="mt-1 grid grid-cols-[1fr_110px] gap-2"><input className="field-input" type="number" min="0" step="any" value={form.volumen_disponible} onChange={(event) => updateField("volumen_disponible", event.target.value)} required /><select className="field-input" value={form.unidad_volumen} onChange={(event) => updateField("unidad_volumen", event.target.value as UnidadVolumen)}>{UNIDADES_VOLUMEN.map((unidad) => <option key={unidad.value} value={unidad.value}>{unidad.value}</option>)}</select></div></label>
           <label className="field-label">Frecuencia<select className="field-input mt-1" value={form.frecuencia} onChange={(event) => updateField("frecuencia", event.target.value)}><option>Una vez</option><option>Semanal</option><option>Quincenal</option><option>Mensual</option></select></label>
           <label className="field-label">Ubicación<select className="field-input mt-1" value={form.municipio} onChange={(event) => updateField("municipio", event.target.value)}>{MUNICIPIOS_VALLE_ABURRA.map((municipio) => <option key={municipio}>{municipio}</option>)}</select></label>
           <label className="field-label sm:col-span-2">Descripción<textarea className="field-input mt-1 min-h-28 resize-y" value={form.descripcion} onChange={(event) => updateField("descripcion", event.target.value)} /></label>
-
-          {/* Toggle de Disponibilidad */}
-          <div className="sm:col-span-2 flex items-center justify-between rounded-xl border border-surface-200 bg-surface-50 p-4">
-            <div>
-              <span className="block text-sm font-bold text-ink-900">
-                Disponibilidad del material
-              </span>
-              <span className="text-xs text-ink-500">
-                {form.disponible
-                  ? "El subproducto está disponible para retiro y solicitudes en el catálogo."
-                  : "El subproducto está marcado como sin stock (pausado) en el catálogo."}
-              </span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.disponible}
-              onClick={() => updateField("disponible", !form.disponible)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                form.disponible ? "bg-[#23ce6b]" : "bg-surface-300"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  form.disponible ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+          {/* Foto del material */}
           <div className="flex-1"><span className="field-label">Foto del material</span><label className="flex h-24 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-surface-200 text-xs text-ink-500 hover:border-[#23ce6b]"><span>▣ Arrastra una imagen aquí o selecciona un archivo</span><input type="file" accept="image/*" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setImageUrl(reader.result as string); reader.readAsDataURL(file); }} /></label></div>
           <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#cce9df]" role="img" aria-label="Vista previa del material">{imageUrl ? <img src={imageUrl} alt="Vista previa del material" className="h-full w-full object-cover" /> : <span className="text-center text-xs font-semibold text-[#00805b]">Vista previa</span>}</div>
         </div>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// HU-01 — Registrar usuario (persona). Criterio: campos requeridos + formato de email.
+// Validacion del formulario de registro de persona
 export const personaSchema = z
   .object({
     nombre_completo: z
@@ -21,7 +21,7 @@ export const personaSchema = z
 
 export type PersonaFormValues = z.infer<typeof personaSchema>;
 
-// HU-01 — Registrar usuario (empresa). Criterio: datos de empresa + email + password.
+// Validacion del formulario de registro de empresa
 export const empresaRegistroSchema = z
   .object({
     razon_social: z
@@ -46,8 +46,8 @@ export const empresaRegistroSchema = z
 
 export type EmpresaRegistroFormValues = z.infer<typeof empresaRegistroSchema>;
 
-// Backward-compatible schemas for api-contract alignment
-// HU-01 — Registrar usuario (legacy shape)
+// Esquema de la version anterior que se mantiene por compatibilidad
+// Validacion del formulario de usuario (version anterior)
 export const usuarioSchema = z
   .object({
     email: z
@@ -67,7 +67,7 @@ export const usuarioSchema = z
 
 export type UsuarioFormValues = z.infer<typeof usuarioSchema>;
 
-// HU-02 — Registrar empresa.
+// Validacion del formulario de registro de empresa
 export const empresaSchema = z.object({
   nombre: z.string().min(1, "El nombre de la empresa es obligatorio."),
   nit: z
@@ -87,7 +87,7 @@ export const empresaSchema = z.object({
 
 export type EmpresaFormValues = z.infer<typeof empresaSchema>;
 
-// HU-03/04/05/06 — Registrar subproducto (incluye familia, volumen y municipio).
+// Validacion del formulario de registro de subproducto
 export const subproductoSchema = z.object({
   nombre: z.string().min(1, "El nombre del subproducto es obligatorio."),
   descripcion: z.string().optional(),
