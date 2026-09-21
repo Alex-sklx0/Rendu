@@ -53,7 +53,7 @@ export default function SubproductDetailPage() {
           </p>
           <div className="mt-6">
             <Link
-              to="/catalogo"
+              to="/catalog"
               className="inline-flex items-center gap-2 rounded-xl bg-forest-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-900"
             >
               ← Volver al catálogo
@@ -64,13 +64,15 @@ export default function SubproductDetailPage() {
     );
   }
 
+  const isDisponible = subproducto.disponible !== false;
+
   return (
     <div className="mx-auto max-w-5xl pb-16">
       {/* ── Back button ───────────────────────────────────────────── */}
       <div className="mb-6">
         <button
           type="button"
-          onClick={() => navigate("/catalogo")}
+              onClick={() => navigate("/catalog")}
           className="inline-flex items-center gap-2 text-sm font-bold text-forest-700 transition-colors hover:text-forest-900"
         >
           <svg
@@ -95,12 +97,20 @@ export default function SubproductDetailPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Column: Visual Image Banner */}
         <div className="lg:col-span-5">
-          <div className="flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
+          <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
+            {!isDisponible && (
+              <div className="absolute top-3 right-3 z-10">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-600 px-3 py-1.5 text-xs font-extrabold tracking-wide text-white shadow-lg">
+                  <span className="h-2 w-2 rounded-full bg-amber-200 animate-pulse" />
+                  Sin stock
+                </span>
+              </div>
+            )}
             {subproducto.image_url ? (
               <img
                 src={subproducto.image_url}
                 alt={`Foto de ${subproducto.nombre}`}
-                className="h-full w-full object-cover"
+                className={`h-full w-full object-cover ${!isDisponible ? "grayscale-[25%] opacity-90" : ""}`}
               />
             ) : (
               <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-[#23ce6b]/60 text-[#23ce6b]" aria-label="Sin fotografía">
@@ -113,7 +123,9 @@ export default function SubproductDetailPage() {
           <div className="mt-4 rounded-xl border border-surface-200 bg-white p-4 text-xs text-ink-500 shadow-sm">
             <div className="flex items-center justify-between">
               <span>Estado:</span>
-              <span className="font-semibold text-forest-700">Disponible para retiro</span>
+              <span className={`font-bold ${isDisponible ? "text-forest-700" : "text-amber-700 font-extrabold"}`}>
+                {isDisponible ? "● Disponible para retiro" : "⚠️ Sin stock / No disponible"}
+              </span>
             </div>
             {subproducto.frecuencia && (
               <div className="mt-2 flex items-center justify-between border-t border-surface-100 pt-2">
@@ -127,11 +139,29 @@ export default function SubproductDetailPage() {
         {/* Right Column: Details & Contact */}
         <div className="lg:col-span-7">
           <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
+            {/* Out of Stock Warning Banner */}
+            {!isDisponible && (
+              <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                <span className="text-2xl leading-none">⚠️</span>
+                <div>
+                  <h3 className="text-sm font-bold">Material sin stock / pausado</h3>
+                  <p className="mt-0.5 text-xs text-amber-800">
+                    La empresa ha marcado este material como no disponible actualmente. Puedes contactarlos para coordinar futuras entregas o lotes.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Category badge */}
-            <div className="mb-3">
+            <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-1 text-xs font-bold text-forest-700">
                 {subproducto.familia}
               </span>
+              {!isDisponible && (
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-800">
+                  Sin stock
+                </span>
+              )}
             </div>
 
             {/* Title */}
@@ -139,9 +169,9 @@ export default function SubproductDetailPage() {
               {subproducto.nombre}
             </h1>
 
-            {/* Company */}
+            {/* Company / Publisher */}
             <p className="mt-1 text-sm font-medium text-ink-500">
-              Publicación de <span className="font-semibold text-ink-800">{subproducto.empresa}</span>
+              Publicación de <span className="font-semibold text-ink-800">{subproducto.usuario || subproducto.empresa}</span>
             </p>
 
             {/* Stats Boxes */}
@@ -150,7 +180,9 @@ export default function SubproductDetailPage() {
                 <span className="block text-xl font-extrabold text-ink-900">
                   {subproducto.volumen_disponible.toLocaleString("es-CO")} {subproducto.unidad_volumen}
                 </span>
-                <span className="text-xs font-medium text-ink-500">Cantidad disponible</span>
+                <span className="text-xs font-medium text-ink-500">
+                  {isDisponible ? "Cantidad disponible" : "Lote habitual"}
+                </span>
               </div>
 
               <div className="rounded-xl bg-[#f6f8f7] p-4 border border-surface-200">
@@ -191,7 +223,11 @@ export default function SubproductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setContactado(true)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-3.5 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] active:scale-[0.99]"
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold text-white shadow-sm transition-all active:scale-[0.99] ${
+                    isDisponible
+                      ? "bg-[#23ce6b] hover:bg-[#1fb85f]"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -206,7 +242,7 @@ export default function SubproductDetailPage() {
                   >
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                   </svg>
-                  Contactar empresa
+                  {isDisponible ? "Contactar empresa" : "Consultar disponibilidad / lote futuro"}
                 </button>
               )}
             </div>
