@@ -17,7 +17,7 @@ export function MunicipioSelect({
   return (
     <Select id={id} hasError={hasError} defaultValue="" {...registration}>
       <option value="" disabled>
-        Selecciona un municipio
+        Valle de Aburrá
       </option>
       {MUNICIPIOS_VALLE_ABURRA.map((municipio) => (
         <option key={municipio} value={municipio}>

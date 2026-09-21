@@ -1,6 +1,53 @@
 import { z } from "zod";
 
-// HU-01 — Registrar usuario. Criterio: campos requeridos + formato de email.
+// HU-01 — Registrar usuario (persona). Criterio: campos requeridos + formato de email.
+export const personaSchema = z
+  .object({
+    nombre_completo: z
+      .string()
+      .min(1, "El nombre es obligatorio."),
+    email: z
+      .string()
+      .min(1, "El correo es obligatorio.")
+      .email("Ingresa un correo electrónico válido."),
+    password: z
+      .string()
+      .min(1, "La contraseña es obligatoria.")
+      .min(8, "La contraseña debe tener al menos 8 caracteres."),
+    aceptar_terminos: z.boolean().refine((val) => val === true, {
+      message: "Debes aceptar los términos.",
+    }),
+  });
+
+export type PersonaFormValues = z.infer<typeof personaSchema>;
+
+// HU-01 — Registrar usuario (empresa). Criterio: datos de empresa + email + password.
+export const empresaRegistroSchema = z
+  .object({
+    razon_social: z
+      .string()
+      .min(1, "La razón social es obligatoria."),
+    nit: z
+      .string()
+      .min(1, "El NIT es obligatorio.")
+      .regex(/^[0-9]{3,3}\.[0-9]{3,3}\.[0-9]{3,3}-[0-9]$|^[0-9]{5,15}-?[0-9]?$/, "Ingresa un NIT válido."),
+    email: z
+      .string()
+      .min(1, "El correo corporativo es obligatorio.")
+      .email("Ingresa un correo electrónico válido."),
+    password: z
+      .string()
+      .min(1, "La contraseña es obligatoria.")
+      .min(8, "La contraseña debe tener al menos 8 caracteres."),
+    aceptar_terminos: z.boolean().refine((val) => val === true, {
+      message: "Debes aceptar los términos.",
+    }),
+  });
+
+export type EmpresaRegistroFormValues = z.infer<typeof empresaRegistroSchema>;
+
+// Backward-compatible schemas for api-contract alignment
+// HU-01 — Registrar usuario (legacy shape)
 export const usuarioSchema = z
   .object({
     email: z
