@@ -43,6 +43,7 @@ export type SubproductoCatalogo = {
   empresa: string;
   municipio: string;
   emoji: string;
+  image_url?: string;
   destacado?: boolean;
 };
 
