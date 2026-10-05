@@ -11,7 +11,7 @@ export default function CatalogPage() {
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFamilia, setActiveFamilia] = useState<string>("todos");
+  const [activeFamilias, setActiveFamilias] = useState<string[]>([]);
   const [activeMunicipio, setActiveMunicipio] = useState<string>("todos");
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function CatalogPage() {
       try {
         const data = await getCatalogo({
           query: searchQuery,
-          id_familia: activeFamilia !== "todos" ? activeFamilia : undefined,
+          id_familia: activeFamilias.length > 0 ? activeFamilias.join(",") : undefined,
           municipio: activeMunicipio !== "todos" ? activeMunicipio : undefined,
         });
         setSubproductos(data);
@@ -33,7 +33,13 @@ export default function CatalogPage() {
     }
 
     fetchCatalogo();
-  }, [searchQuery, activeFamilia, activeMunicipio]);
+  }, [searchQuery, activeFamilias, activeMunicipio]);
+
+  function handleToggleFamilia(id: string) {
+    setActiveFamilias((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl pb-16">
@@ -90,33 +96,33 @@ export default function CatalogPage() {
         </select>
       </div>
 
-      {/* filtro de categorías */}
+      {/* filtro de categorías (selección múltiple) */}
       <div className="mb-8 flex flex-wrap gap-2 overflow-x-auto pb-1">
         <button
           type="button"
-          onClick={() => setActiveFamilia("todos")}
+          onClick={() => setActiveFamilias([])}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-            activeFamilia === "todos"
+            activeFamilias.length === 0
               ? "bg-[#23ce6b] text-white shadow-sm"
               : "border border-surface-200 bg-white text-ink-600 hover:bg-surface-100"
           }`}
         >
-          Todos
+          Todos {activeFamilias.length === 0 ? "" : `(${activeFamilias.length} seleccionados)`}
         </button>
         {FAMILIAS_MATERIAL.map((fam) => {
-          const isActive = activeFamilia === fam.id;
+          const isActive = activeFamilias.includes(fam.id);
           return (
             <button
               key={fam.id}
               type="button"
-              onClick={() => setActiveFamilia(fam.id)}
+              onClick={() => handleToggleFamilia(fam.id)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                 isActive
                   ? "bg-[#23ce6b] text-white shadow-sm"
                   : "border border-surface-200 bg-white text-ink-600 hover:bg-surface-100"
               }`}
             >
-              {fam.nombre}
+              {isActive ? "✓ " : ""}{fam.nombre}
             </button>
           );
         })}
@@ -147,7 +153,7 @@ export default function CatalogPage() {
             type="button"
             onClick={() => {
               setSearchQuery("");
-              setActiveFamilia("todos");
+              setActiveFamilias([]);
               setActiveMunicipio("todos");
             }}
             className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-4 py-2 text-sm font-semibold text-forest-700 hover:bg-surface-50"
