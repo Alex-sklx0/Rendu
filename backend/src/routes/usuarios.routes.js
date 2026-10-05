@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import { registrarUsuario, loginUsuario, eliminarUsuario } from '../controllers/usuarios.controller.js';
+import { postRegistrarUsuario, postLoginUsuario, deleteUsuario } from '../controllers/usuarios.controller.js';
 
 const router = Router();
 
-// Rutas de usuarios
-router.post('/', registrarUsuario);
-router.post('/login', loginUsuario);
-router.delete('/:id', eliminarUsuario);
+// POST /api/usuarios       — registrar usuario
+// POST /api/usuarios/login — iniciar sesión
+// DELETE /api/usuarios/:id — eliminar cuenta
+router.post('/', postRegistrarUsuario);
+router.post('/login', postLoginUsuario);
+router.delete('/:id', deleteUsuario);
 
 export default router;

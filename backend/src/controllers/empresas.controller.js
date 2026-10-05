@@ -1,63 +1,49 @@
-// Controlador para registro y gestion de empresas
+// Controlador para registro de empresas
 
-import { supabase } from '../config/db.js';
+import { registrarEmpresa, MUNICIPIOS_VALIDOS, ROLES_VALIDOS_EMPRESA } from '../services/empresas.service.js';
 
-// Registra el perfil de una empresa vinculada a un usuario
-export async function registrarEmpresa(req, res, next) {
+export async function postRegistrarEmpresa(req, res, next) {
   try {
-    const { id_usuario, nombre, nit, municipio, id_municipio, tipo_actor, id_rol, medio_contacto } = req.body;
-    
-    // Validar campos obligatorios
-    if (!id_usuario || !nombre || !nit || (!municipio && !id_municipio) || (!tipo_actor && !id_rol)) {
-      return res.status(400).json({ ok: false, error: 'id_usuario, nombre, nit, municipio y tipo_actor son obligatorios.' });
+    const { nombre, nit, id_municipio, id_rol, id_usuario } = req.body;
+
+    // Validacion de campos requeridos
+    if (!nombre || !nit || !id_municipio || !id_rol || !id_usuario) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Los campos "nombre", "nit", "id_municipio", "id_rol" e "id_usuario" son obligatorios',
+      });
     }
 
-    // Normalizar NIT sin espacios ni puntos
-    const nitNormalizado = String(nit).trim().replace(/[.\s]/g, '');
-
-    // Verificar si ya existe una empresa con ese NIT
-    const { data: empresasList } = await supabase.from('empresas').select('id, nit');
-    if (empresasList?.some(e => String(e.nit).trim().replace(/[.\s]/g, '') === nitNormalizado)) {
-      return res.status(409).json({ ok: false, error: 'Ya existe una empresa registrada con ese NIT.' });
+    // Validacion de municipio
+    if (!MUNICIPIOS_VALIDOS.includes(Number(id_municipio))) {
+      return res.status(400).json({
+        ok: false,
+        error: 'id_municipio inválido. Debe ser un municipio del Valle de Aburrá (1 a 10)',
+      });
     }
 
-    // Resolver ID de municipio
-    let municipioId = id_municipio;
-    if (!municipioId && municipio) {
-      const cleanMuni = municipio.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-      const { data: municipiosList } = await supabase.from('municipios').select('id, nombre');
-      const match = municipiosList?.find(m => m.nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() === cleanMuni);
-      municipioId = match?.id || 1;
-    }
-    if (!municipioId) municipioId = 1;
-
-    // Resolver ID de rol (Generador o Transformador)
-    let rolId = id_rol;
-    if (!rolId) {
-      const actorLower = String(tipo_actor).toLowerCase();
-      let roleName = 'GENERADOR';
-      if (actorLower.includes('transform') || actorLower.includes('eca') ||
-          actorLower.includes('recicla') || actorLower.includes('gestor')) {
-        roleName = 'TRANSFORMADOR';
-      }
-      const { data: roleRow } = await supabase.from('roles').select('id').ilike('nombre', roleName).maybeSingle();
-      rolId = roleRow?.id || 1;
+    // Validacion de rol de empresa
+    if (!ROLES_VALIDOS_EMPRESA.includes(Number(id_rol))) {
+      return res.status(400).json({
+        ok: false,
+        error: 'id_rol inválido para una empresa. Debe ser 1 (GENERADOR) o 2 (TRANSFORMADOR)',
+      });
     }
 
-    // Insertar registro de empresa
-    const { data, error } = await supabase
-      .from('empresas')
-      .insert({ id_usuario, nombre, nit: nitNormalizado, id_municipio: municipioId, id_rol: rolId })
-      .select('id, id_usuario, nombre, nit, id_municipio, id_rol')
-      .single();
+    const empresa = await registrarEmpresa({
+      nombre,
+      nit,
+      id_municipio: Number(id_municipio),
+      id_rol: Number(id_rol),
+      id_usuario: Number(id_usuario),
+    });
 
-    if (error) {
-      if (error.code === '23505') return res.status(409).json({ ok: false, error: 'Ya existe una empresa registrada con ese NIT o con el mismo usuario.' });
-      if (error.code === '23503') return res.status(404).json({ ok: false, error: 'El usuario no existe o fue eliminado.' });
-      throw error;
-    }
-    return res.status(201).json({ ok: true, mensaje: 'Empresa registrada exitosamente', empresa: data });
+    return res.status(201).json({
+      ok: true,
+      mensaje: 'Empresa registrada exitosamente',
+      empresa,
+    });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }

@@ -1,10 +1,9 @@
 import { Router } from 'express';
-import { registrarEmpresa } from '../controllers/empresas.controller.js';
+import { postRegistrarEmpresa } from '../controllers/empresas.controller.js';
 
 const router = Router();
 
-// POST /api/empresas — HU-02: Registro de empresa
-// Forma del request/response definida en /docs/api-contract.md
-router.post('/', registrarEmpresa);
+// POST /api/empresas — Registro de empresa (HU-02)
+router.post('/', postRegistrarEmpresa);
 
 export default router;

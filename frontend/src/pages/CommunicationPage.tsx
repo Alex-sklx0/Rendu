@@ -1,9 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SocialNetworkIcons } from "@/components/ui/social_network_icons";
 
 export default function CommunicationPage() {
   const navigate = useNavigate();
   const [handle, setHandle] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Efecto de bucle para cambiar de red social cada 1 segundo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % SocialNetworkIcons.length);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentSocial = SocialNetworkIcons[currentIndex];
 
   function handleContinue() {
     navigate("/catalog");
@@ -14,31 +27,23 @@ export default function CommunicationPage() {
       <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
         <div className="pointer-events-none absolute bottom-6 left-6 h-16 w-36 rounded-bl-2xl border-b-4 border-l-4 border-[#23ce6b]" />
 
-        {/* titulo */}
+        {/* Titulo */}
         <div className="relative z-10 mx-auto max-w-lg text-center mb-10">
           <h1 className="text-lg font-extrabold leading-snug text-ink-900 sm:text-2xl">
             Para comunicarte con otros danos el link, número o describe tu medio de comunicación preferido...
           </h1>
         </div>
 
-        {/* Input de contacto */}
+        {/* Input de contacto con icono animado */}
         <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5 my-8">
-          {/* Instagram / App Icon Tile */}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#f9ed32] via-[#ee2a7b] to-[#002aff] p-0.5 shadow-md">
+          
+          {/* Tile dinámico rotativo */}
+          <div 
+            key={currentIndex} 
+            className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr ${currentSocial.gradient} p-0.5 shadow-md transition-all duration-300`}
+          >
             <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-white">
-              {/* Instagram Icon */}
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-grad)" strokeWidth="2.2" />
-                <circle cx="12" cy="12" r="4.5" stroke="url(#ig-grad)" strokeWidth="2.2" />
-                <circle cx="18" cy="6" r="1.2" fill="#ee2a7b" />
-                <defs>
-                  <linearGradient id="ig-grad" x1="2" y1="22" x2="22" y2="2" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#f9ed32" />
-                    <stop offset="0.5" stopColor="#ee2a7b" />
-                    <stop offset="1" stopColor="#002aff" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              {currentSocial.icon}
             </div>
           </div>
 
@@ -48,13 +53,13 @@ export default function CommunicationPage() {
               type="text"
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
-              placeholder="ig.@miusuario/..."
+              placeholder="..."
               className="w-full rounded-full border border-surface-300 bg-white px-5 py-3 text-sm text-ink-900 shadow-inner placeholder:text-ink-400 focus:border-[#23ce6b] focus:outline-none transition-colors"
             />
           </div>
         </div>
 
-        {/* boton de continuar */}
+        {/* Boton de continuar */}
         <div className="relative z-10 mt-12 flex justify-end">
           <button
             type="button"

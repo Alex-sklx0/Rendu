@@ -1,8 +1,8 @@
-// Pagina con el detalle de un subproducto
+// Pagina con el detalle publico de un subproducto (solo publicados)
 
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getSubproductoDetalle } from "@/api/client";
+import { getPublicacion } from "@/api/client";
 import type { SubproductoDetalle } from "@/types";
 
 export default function SubproductDetailPage() {
@@ -19,7 +19,7 @@ export default function SubproductDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await getSubproductoDetalle(id);
+        const data = await getPublicacion(id);
         setSubproducto(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar el detalle.");
@@ -126,7 +126,7 @@ export default function SubproductDetailPage() {
             <div className="flex items-center justify-between">
               <span>Estado:</span>
               <span className={`font-bold ${isDisponible ? "text-forest-700" : "text-amber-700 font-extrabold"}`}>
-                {isDisponible ? "● Disponible para retiro" : "⚠️ Sin stock / No disponible"}
+                {isDisponible ? "● Disponible para retiro" : "Sin stock / No disponible"}
               </span>
             </div>
             {subproducto.frecuencia && (
@@ -140,30 +140,13 @@ export default function SubproductDetailPage() {
 
         {/* Columna derecha con detalles y contacto */}
         <div className="lg:col-span-7">
-          <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
-            {/* Aviso de material sin stock */}
-            {!isDisponible && (
-              <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
-                <span className="text-2xl leading-none">⚠️</span>
-                <div>
-                  <h3 className="text-sm font-bold">Material sin stock / pausado</h3>
-                  <p className="mt-0.5 text-xs text-amber-800">
-                    La empresa ha marcado este material como no disponible actualmente. Puedes contactarlos para coordinar futuras entregas o lotes.
-                  </p>
-                </div>
-              </div>
-            )}
+          <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">            
 
             {/* Categoria del material */}
             <div className="mb-3 flex items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-1 text-xs font-bold text-forest-700">
                 {subproducto.familia}
               </span>
-              {!isDisponible && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-800">
-                  Sin stock
-                </span>
-              )}
             </div>
 
             {/* Nombre del material */}
@@ -215,11 +198,12 @@ export default function SubproductDetailPage() {
               ) : (
                 <button
                   type="button"
+                  disabled={!isDisponible}
                   onClick={() => setContactado(true)}
                   className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold text-white shadow-sm transition-all active:scale-[0.99] ${
                     isDisponible
-                      ? "bg-[#23ce6b] hover:bg-[#1fb85f]"
-                      : "bg-amber-600 hover:bg-amber-700"
+                      ? "bg-[#23ce6b] "
+                      : "bg-amber-600 "
                   }`}
                 >
                   <svg
@@ -235,7 +219,7 @@ export default function SubproductDetailPage() {
                   >
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                   </svg>
-                  {isDisponible ? "Contactar empresa" : "Consultar disponibilidad / lote futuro"}
+                  {isDisponible ? "Contactar empresa" : "No se puede contactar (sin stock)"}
                 </button>
               )}
             </div>

@@ -1,193 +1,99 @@
-// Servicio para manejo de archivos e imagenes en Supabase Storage
+// Servicio para manejo de imagenes en Supabase Storage
 
 import crypto from 'node:crypto';
-import { supabase } from '../config/db.js';
+import { supabase } from '../config/supabaseClient.js';
 
-// Extrae la ruta de un archivo dentro del bucket desde su URL publica
-export function extractStoragePath(url, bucketName = 'Imagenes') {
+const BUCKET = 'Imagenes';
+
+// Tipos de imagen permitidos
+const TIPOS_PERMITIDOS = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+// Extrae la ruta relativa dentro del bucket desde su URL publica
+function extractStoragePath(url) {
   if (!url || typeof url !== 'string') return null;
-  const marker = `/${bucketName}/`;
+  const marker = `/${BUCKET}/`;
   if (!url.includes(marker)) return null;
   const parts = url.split(marker);
   if (!parts[1]) return null;
-  const pathWithoutQuery = parts[1].split('?')[0];
-  return decodeURIComponent(pathWithoutQuery);
+  return decodeURIComponent(parts[1].split('?')[0]);
 }
 
-// Elimina un archivo de Supabase Storage usando su URL o ruta
-export async function deleteStorageFile(urlOrPath, bucketName = 'Imagenes') {
-  if (!urlOrPath || typeof urlOrPath !== 'string') return;
-  
-  const path = (urlOrPath.includes('http://') || urlOrPath.includes('https://'))
-    ? extractStoragePath(urlOrPath, bucketName)
-    : urlOrPath;
-
+// Elimina un archivo del Storage — nunca lanza error, solo lo registra
+export async function deleteStorageFile(url) {
+  const path = extractStoragePath(url);
   if (!path) return;
 
-  try {
-    const { data, error } = await supabase.storage.from(bucketName).remove([path]);
-    if (error) {
-      console.warn(`[StorageService] Error al eliminar archivo '${path}':`, error.message);
-    } else {
-      console.log(`[StorageService] Archivo '${path}' eliminado exitosamente.`, data);
-    }
-  } catch (err) {
-    console.warn(`[StorageService] Excepción al eliminar archivo '${path}':`, err.message);
+  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+  if (error) {
+    console.warn(`[StorageService] No se pudo eliminar '${path}':`, error.message);
   }
 }
 
-// Sube o reemplaza una imagen en Supabase Storage
+// Sube una imagen en Base64 o Data URI al Storage y devuelve su URL publica
 export async function uploadImageToStorage(imageInput, folder = 'subproductos', existingUrl = null) {
-  if (!imageInput || (typeof imageInput !== 'string' && !Buffer.isBuffer(imageInput))) {
-    return null;
-  }
+  if (!imageInput || typeof imageInput !== 'string') return null;
 
-  // Si ya es una URL valida, no la procesamos de nuevo
-  if (typeof imageInput === 'string' && (imageInput.startsWith('http://') || imageInput.startsWith('https://'))) {
-    return imageInput;
-  }
+  // Si ya es URL publica, se devuelve tal cual (el front reenvía la misma imagen sin cambios)
+  if (/^https?:\/\//i.test(imageInput)) return imageInput;
 
-  let buffer;
-  let ext = 'jpg';
   let mimeType = 'image/jpeg';
+  let base64 = imageInput;
 
-  // Convertir formato base64 o buffer a archivo usable
-  if (typeof imageInput === 'string' && imageInput.startsWith('data:')) {
-    const matches = imageInput.match(/^data:(image\/(\w+));base64,(.+)$/);
-    if (matches) {
-      mimeType = matches[1];
-      ext = matches[2] === 'jpeg' ? 'jpg' : matches[2];
-      buffer = Buffer.from(matches[3], 'base64');
-    } else {
-      const base64Parts = imageInput.split(',');
-      buffer = Buffer.from(base64Parts[1] || base64Parts[0], 'base64');
+  if (imageInput.startsWith('data:')) {
+    const match = imageInput.match(/^data:([\w/+.-]+);base64,(.+)$/s);
+    if (!match) {
+      const err = new Error('Formato de imagen inválido: se esperaba un Data URI en Base64');
+      err.status = 400;
+      throw err;
     }
-  } else if (typeof imageInput === 'string') {
-    buffer = Buffer.from(imageInput, 'base64');
-  } else {
-    buffer = imageInput;
+    mimeType = match[1].toLowerCase();
+    base64 = match[2];
   }
 
-  // Borrar imagen anterior en caso de reemplazo
-  if (existingUrl) {
-    await deleteStorageFile(existingUrl, 'Imagenes');
+  // Verificar tipo de imagen
+  const ext = TIPOS_PERMITIDOS[mimeType];
+  if (!ext) {
+    const err = new Error('Tipo de imagen no permitido. Usa JPG, PNG, WEBP o GIF');
+    err.status = 400;
+    throw err;
   }
 
-  // Generar nombre unico y subir archivo
-  const uniqueFileName = `${folder}/${crypto.randomUUID()}.${ext}`;
-
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('Imagenes')
-    .upload(uniqueFileName, buffer, {
-      contentType: mimeType,
-      upsert: true
-    });
-
-  if (uploadError) {
-    console.error('[StorageService] Error al subir a Supabase Storage:', uploadError.message);
-    throw new Error(`Error al subir imagen a Storage: ${uploadError.message}`);
+  const buffer = Buffer.from(base64, 'base64');
+  if (buffer.length === 0) {
+    const err = new Error('La imagen está vacía o el Base64 es inválido');
+    err.status = 400;
+    throw err;
   }
 
-  // Generar URL publica para guardar en la BD
-  const { data: publicUrlData } = supabase.storage
-    .from('Imagenes')
-    .getPublicUrl(uploadData.path);
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
 
-  const publicUrl = publicUrlData?.publicUrl;
+  // Subir imagen nueva
+  const { error: errorSubida } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, buffer, { contentType: mimeType, upsert: false });
+
+  if (errorSubida) {
+    const err = new Error('Error al subir la imagen: ' + errorSubida.message);
+    err.status = 500;
+    throw err;
+  }
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  const publicUrl = data?.publicUrl;
   if (!publicUrl) {
-    throw new Error('No se pudo generar la URL pública de la imagen.');
+    const err = new Error('No se pudo generar la URL pública de la imagen');
+    err.status = 500;
+    throw err;
   }
+
+  // Borrar imagen anterior solo si la nueva ya quedó guardada
+  if (existingUrl) await deleteStorageFile(existingUrl);
 
   return publicUrl;
-}
-
-// Helper para subir imagen y registrar post
-export async function subirImagenYCrearPost({
-  fileBuffer,
-  originalName = 'imagen.jpg',
-  mimeType = 'image/jpeg',
-  authToken,
-  userId,
-  tableName = 'posts',
-  extraData = {}
-}) {
-  try {
-    let authenticatedUser = null;
-
-    if (authToken) {
-      const { data: { user }, error: userError } = await supabase.auth.getUser(authToken);
-      if (userError || !user) {
-        throw new Error('Debes iniciar sesión para publicar.');
-      }
-      authenticatedUser = user;
-    } else if (userId) {
-      authenticatedUser = { id: userId };
-    } else {
-      throw new Error('Debes iniciar sesión para publicar.');
-    }
-
-    const currentUserId = authenticatedUser.id;
-    const fileExt = originalName.split('.').pop()?.toLowerCase() || 'jpg';
-    const filePath = `${currentUserId}/${crypto.randomUUID()}.${fileExt}`;
-
-    let payload = fileBuffer;
-    if (typeof fileBuffer === 'string' && fileBuffer.startsWith('data:')) {
-      const base64Data = fileBuffer.split(',')[1];
-      payload = Buffer.from(base64Data, 'base64');
-    } else if (typeof fileBuffer === 'string') {
-      payload = Buffer.from(fileBuffer, 'base64');
-    }
-
-    // Subir imagen al bucket
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('Imagenes')
-      .upload(filePath, payload, {
-        contentType: mimeType,
-        upsert: false
-      });
-
-    if (uploadError) {
-      throw new Error(`Error al subir la imagen a Storage: ${uploadError.message}`);
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('Imagenes')
-      .getPublicUrl(uploadData.path);
-
-    const imageUrl = publicUrlData.publicUrl;
-    if (!imageUrl) {
-      throw new Error('No se pudo generar la URL pública de la imagen.');
-    }
-
-    // Crear registro en la tabla indicada
-    const rowToInsert = tableName === 'subproductos'
-      ? {
-          foto_url: imageUrl,
-          ...extraData
-        }
-      : {
-          user_id: currentUserId,
-          image_url: imageUrl,
-          ...extraData
-        };
-
-    const { data: dbData, error: dbError } = await supabase
-      .from(tableName)
-      .insert([rowToInsert])
-      .select()
-      .single();
-
-    if (dbError) {
-      await supabase.storage.from('Imagenes').remove([filePath]);
-      throw new Error(`Error al guardar el registro en la base de datos: ${dbError.message}`);
-    }
-
-    return {
-      imageUrl,
-      dbRecord: dbData
-    };
-  } catch (error) {
-    console.error('[StorageService] Error en el proceso:', error.message);
-    throw error;
-  }
 }

@@ -170,6 +170,7 @@ export async function registrarSubproducto(
     unidad_volumen: UnidadVolumen;
     municipio: string;
     image_url?: string;
+    publicar?: boolean;
   }
 ): Promise<SubproductoDetalle> {
   const unidad = UNIDADES_VOLUMEN.find((option) => option.value === input.unidad_volumen);
@@ -183,6 +184,7 @@ export async function registrarSubproducto(
     id_unidad_medida: unidad.id,
     id_municipio: municipioId(input.municipio),
     image_base64: input.image_url,
+    publicar: input.publicar ?? false,
   });
   return mapSubproducto(unwrap(response, "subproducto"));
 }
@@ -202,10 +204,16 @@ export async function getCatalogo(params?: {
   return unwrap(response, "subproductos").map(mapSubproducto);
 }
 
-// Consulta detallada de un subproducto por ID
+// Consulta detallada de un subproducto por ID (para el dueño)
 export async function getSubproductoDetalle(id: string): Promise<SubproductoDetalle> {
   const response = await get<ApiResponse<BackendSubproducto>>(`/subproductos/${id}`);
   return mapSubproducto(unwrap(response, "subproducto"));
+}
+
+// Detalle público de una publicación (solo si está publicada — para el catálogo)
+export async function getPublicacion(id: string): Promise<SubproductoDetalle> {
+  const response = await get<ApiResponse<BackendSubproducto>>(`/publicaciones/${id}`);
+  return mapSubproducto(unwrap(response, "publicacion"));
 }
 
 // Obtener las publicaciones propias de una empresa

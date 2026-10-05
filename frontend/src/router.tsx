@@ -18,7 +18,8 @@ import CommunicationPage from "@/pages/CommunicationPage";
 import MatchingPage from "@/pages/MatchingPage";
 import ProfilePage from "@/pages/ProfilePage";
 import UpdateSubproductPage from "@/pages/UpdateSubproductPage";
-import NotFoundPage from "@/pages/NotFoundPage";
+import NotFoundPage from "@/pages/404NotFoundPage";
+import DisablePostSubproduct from "@/pages/DisablePostSubproduct";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
       { path: "register", element: <Navigate to="/pre-register" replace /> },
       { path: "subproducts/new", element: <RegisterSubproductPage /> },
       { path: "*", element: <NotFoundPage /> },
+      { path: "disable-post-subproduct", element: <DisablePostSubproduct /> },
     ],
   },
 ]);

@@ -14,7 +14,7 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
     <div className={`flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 ${
       isDisponible
         ? "border-surface-200 hover:shadow-[0_12px_24px_rgba(35,206,107,0.28)]"
-        : "border-amber-200 bg-amber-50/10 hover:shadow-[0_12px_24px_rgba(217,119,6,0.2)]"
+        : "border-surface-200 hover:shadow-[0_12px_24px_rgba(217,119,6,0.2)]"
     }`}>
       {/* Imagen o banner visual del material */}
       <div className="relative flex h-36 w-full items-center justify-center overflow-hidden bg-gradient-to-b from-[#dceee8] to-[#b9ddd0]">

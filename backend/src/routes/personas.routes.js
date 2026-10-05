@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { registrarPersona } from '../controllers/personas.controller.js';
+import { postRegistrarPersona } from '../controllers/personas.controller.js';
 
 const router = Router();
 
-// POST /api/personas — Registro de perfil de persona/reciclador individual
-router.post('/', registrarPersona);
+// POST /api/personas — Registro de persona natural o reciclador (HU-01)
+router.post('/', postRegistrarPersona);
 
 export default router;

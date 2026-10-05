@@ -1,24 +1,22 @@
 import { Router } from 'express';
 import {
-	actualizarSubproducto,
-	eliminarSubproducto,
-	misPublicaciones,
-	obtenerSubproducto,
-	registrarSubproducto,
-	subirImagenSubproducto,
+  postRegistrarSubproducto,
+  getSubproducto,
+  getMisPublicaciones,
+  patchSubproducto,
+  deleteSubproducto,
+  patchPublicarSubproducto,
+  postSubirImagen,
 } from '../controllers/subproductos.controller.js';
 
 const router = Router();
 
-// POST /api/subproductos — HU-03 a HU-06: Registro de subproducto
-router.post('/', registrarSubproducto);
-
-// POST /api/subproductos/upload — HU-08: Subida de imágenes a Supabase Storage
-router.post('/upload', subirImagenSubproducto);
-
-router.get('/mis-publicaciones', misPublicaciones);
-router.get('/:id', obtenerSubproducto);
-router.patch('/:id', actualizarSubproducto);
-router.delete('/:id', eliminarSubproducto);
+router.post('/', postRegistrarSubproducto);           // registrar (nace en borrador)
+router.post('/upload', postSubirImagen);              // subir imagen suelta
+router.get('/mis-publicaciones', getMisPublicaciones); // listar propias (incluye borradores)
+router.get('/:id', getSubproducto);                   // detalle (para el dueño)
+router.patch('/:id', patchSubproducto);               // editar
+router.patch('/:id/publicar', patchPublicarSubproducto); // publicar o pasar a borrador
+router.delete('/:id', deleteSubproducto);             // eliminar
 
 export default router;

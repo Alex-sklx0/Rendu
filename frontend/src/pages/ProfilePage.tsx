@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getMisPublicaciones, getCatalogo, eliminarSubproducto, eliminarCuenta, actualizarSubproducto } from "@/api/client";
+import { getMisPublicaciones, getCatalogo, eliminarSubproducto, eliminarCuenta, actualizarSubproducto, cambiarEstadoPublicacion } from "@/api/client";
 import type { SubproductoCatalogo, SubproductoDetalle } from "@/types";
 
 export default function ProfilePage() {
@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [catalogo, setCatalogo] = useState<SubproductoCatalogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
   const [userData, setUserData] = useState<{ id?: number; email?: string; nombre?: string; id_empresa?: string | number } | null>(null);
 
   useEffect(() => {
@@ -112,6 +113,40 @@ export default function ProfilePage() {
       alert(err instanceof Error ? err.message : "Error al actualizar la disponibilidad.");
     } finally {
       setTogglingId(null);
+    }
+  }
+
+  // Publicar o pasar a borrador una publicacion
+  async function handleTogglePublicacion(publicacion: SubproductoDetalle) {
+    const estaPublicado = publicacion.id_estado_publicacion === 2;
+    const publicar = !estaPublicado;
+    setPublishingId(publicacion.id);
+
+    // Actualización optimista
+    setPublicaciones((prev) =>
+      prev.map((p) =>
+        p.id === publicacion.id
+          ? { ...p, id_estado_publicacion: publicar ? 2 : 1, estado_publicacion: publicar ? "publicado" : "borrador" }
+          : p
+      )
+    );
+
+    try {
+      const companyId = userData?.id_empresa;
+      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
+      await cambiarEstadoPublicacion(publicacion.id, companyId, publicar);
+    } catch (err) {
+      // Revertir en caso de error
+      setPublicaciones((prev) =>
+        prev.map((p) =>
+          p.id === publicacion.id
+            ? { ...p, id_estado_publicacion: estaPublicado ? 2 : 1, estado_publicacion: estaPublicado ? "publicado" : "borrador" }
+            : p
+        )
+      );
+      alert(err instanceof Error ? err.message : "Error al cambiar el estado de publicación.");
+    } finally {
+      setPublishingId(null);
     }
   }
 
@@ -254,7 +289,8 @@ export default function ProfilePage() {
                   <th className="px-3 py-2.5 font-bold">Material</th>
                   <th className="px-3 py-2.5 font-bold">Familia</th>
                   <th className="px-3 py-2.5 font-bold">Cantidad</th>
-                  <th className="px-3 py-2.5 font-bold">Estado</th>
+                  <th className="px-3 py-2.5 font-bold">Disponibilidad</th>
+                  <th className="px-3 py-2.5 font-bold">Publicación</th>
                   <th className="px-3 py-2.5 font-bold">Matches</th>
                   <th className="px-3 py-2.5 text-right font-bold">Acciones</th>
                 </tr>
@@ -289,6 +325,27 @@ export default function ProfilePage() {
                             }`}
                           />
                           <span>{publicacion.disponible !== false ? "Disponible" : "Sin stock"}</span>
+                        </button>
+                      </td>
+                      {/* Celda de estado de publicacion: borrador o publicado */}
+                      <td className="px-3 py-3">
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePublicacion(publicacion)}
+                          disabled={publishingId === publicacion.id}
+                          title={publicacion.id_estado_publicacion === 2 ? "Clic para pasar a borrador" : "Clic para publicar"}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition-all ${
+                            publicacion.id_estado_publicacion === 2
+                              ? "bg-blue-100 text-blue-800 hover:bg-blue-200 border border-blue-300"
+                              : "bg-surface-100 text-ink-500 hover:bg-surface-200 border border-surface-300"
+                          } disabled:opacity-50`}
+                        >
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              publicacion.id_estado_publicacion === 2 ? "bg-blue-600" : "bg-ink-400 animate-pulse"
+                            }`}
+                          />
+                          <span>{publicacion.id_estado_publicacion === 2 ? "Publicado" : "Borrador"}</span>
                         </button>
                       </td>
                       <td className="px-3 py-3">

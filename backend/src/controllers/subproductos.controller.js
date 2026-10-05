@@ -1,324 +1,210 @@
 // Controlador para la gestion de subproductos
 
-import { supabase } from '../config/db.js';
-import { deleteStorageFile, uploadImageToStorage } from '../services/storage.service.js';
+import {
+  registrarSubproducto,
+  obtenerSubproductoPorId,
+  listarMisPublicaciones,
+  actualizarSubproducto,
+  eliminarSubproducto,
+  cambiarEstadoPublicacion,
+  MUNICIPIOS_VALIDOS,
+} from '../services/subproductos.service.js';
+import { uploadImageToStorage, deleteStorageFile } from '../services/storage.service.js';
 
-// Campos a seleccionar en las consultas de subproductos
-const fields = 'id, id_empresa, nombre, descripcion, id_familia_material, volumen_disponible, id_unidad_medida, id_municipio, direccion, foto_url, fecha_registro, disponible';
-
-// Mapeo de nombres de familias para normalizar busquedas
-const FAMILY_MAP = {
-  'papel_carton': 'Papel y cartón',
-  'papel y carton': 'Papel y cartón',
-  'papel y cartón': 'Papel y cartón',
-  'plasticos': 'Plásticos',
-  'plásticos': 'Plásticos',
-  'vidrio': 'Vidrio',
-  'metales': 'Metales',
-  'textil': 'Textiles',
-  'textiles': 'Textiles',
-  'madera': 'Madera',
-};
-
-// Mapeo de unidades de medida
-const UNIT_MAP = {
-  'kg': 'kg',
-  'kilogramo': 'kg',
-  'kilogramos': 'kg',
-  'ton': 't',
-  't': 't',
-  'tonelada': 't',
-  'toneladas': 't',
-  'm3': 'm³',
-  'm³': 'm³',
-  'unidades': 'kg',
-};
-
-// Busca el ID correspondiente en tablas de referencia (familias, unidades, municipios)
-async function resolveId(table, value, nameField = 'nombre') {
-  if (value === undefined || value === null || value === '') return undefined;
-
-  const strVal = String(value).trim().toLowerCase();
-  if (/^\d+$/.test(strVal)) {
-    const num = Number(strVal);
-    const { data } = await supabase.from(table).select('id').eq('id', num).maybeSingle();
-    if (data) return data.id;
-  }
-
-  let searchValue = String(value).trim();
-  if (table === 'familias_material' && FAMILY_MAP[strVal]) {
-    searchValue = FAMILY_MAP[strVal];
-  } else if (table === 'unidades_medida' && UNIT_MAP[strVal]) {
-    searchValue = UNIT_MAP[strVal];
-    nameField = 'abreviatura';
-  }
-
-  let { data, error } = await supabase.from(table).select('id').ilike(nameField, searchValue).maybeSingle();
-  if (!data && nameField !== 'nombre') {
-    const res = await supabase.from(table).select('id').ilike('nombre', searchValue).maybeSingle();
-    data = res.data;
-  }
-  if (!data && table === 'municipios') {
-    const cleanSearch = searchValue.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const { data: municipiosList } = await supabase.from('municipios').select('id, nombre');
-    if (municipiosList) {
-      const match = municipiosList.find(m => m.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() === cleanSearch);
-      if (match) data = match;
-    }
-  }
-  if (error) throw error;
-  return data?.id;
-}
-
-// Formatea los datos del subproducto uniendo los nombres de empresa, municipio, etc.
-async function present(item) {
-  const [family, unit, municipality, company] = await Promise.all([
-    supabase.from('familias_material').select('id, nombre').eq('id', item.id_familia_material).maybeSingle(),
-    supabase.from('unidades_medida').select('id, nombre, abreviatura').eq('id', item.id_unidad_medida).maybeSingle(),
-    supabase.from('municipios').select('id, nombre').eq('id', item.id_municipio).maybeSingle(),
-    supabase.from('empresas').select('id, nombre, id_usuario').eq('id', item.id_empresa).maybeSingle(),
-  ]);
-  if (family.error || unit.error || municipality.error || company.error) throw family.error || unit.error || municipality.error || company.error;
-
-  let userEmail = undefined;
-  if (company.data?.id_usuario) {
-    const userRes = await supabase.from('usuarios').select('id, email').eq('id', company.data.id_usuario).maybeSingle();
-    userEmail = userRes.data?.email;
-  }
-
-  return {
-    ...item,
-    id_familia: String(item.id_familia_material),
-    familia: family.data?.nombre || 'Sin familia',
-    unidad_volumen: unit.data?.abreviatura || unit.data?.nombre || 'unidad',
-    municipio: municipality.data?.nombre || 'Sin municipio',
-    empresa: company.data?.nombre || 'Empresa',
-    usuario: userEmail || company.data?.nombre || 'Usuario',
-    image_url: item.foto_url || undefined,
-    emoji: '',
-    estado_publicacion: 'publicado',
-    disponible: item.disponible !== false,
-  };
-}
-
-// Registra un nuevo subproducto en el sistema
-export async function registrarSubproducto(req, res, next) {
+// Crear nuevo subproducto (nace en BORRADOR)
+export async function postRegistrarSubproducto(req, res, next) {
   try {
-    const { id_empresa, nombre, descripcion, id_familia, id_familia_material, volumen_disponible, unidad_volumen, id_unidad_medida, municipio, id_municipio, direccion, image_url, disponible } = req.body;
-    
+    const {
+      id_empresa,
+      nombre,
+      id_familia_material,
+      volumen_disponible,
+      id_unidad_medida,
+      descripcion,
+      id_municipio,
+      direccion,
+      image_base64,
+      publicar,
+    } = req.body;
+
     // Validacion de campos requeridos
-    if (!id_empresa || !nombre || (!id_familia && !id_familia_material) || volumen_disponible === undefined || (!unidad_volumen && !id_unidad_medida) || (!municipio && !id_municipio)) {
-      return res.status(400).json({ ok: false, error: 'Faltan campos obligatorios del subproducto.' });
+    if (
+      !id_empresa ||
+      !nombre ||
+      !id_familia_material ||
+      volumen_disponible === undefined ||
+      volumen_disponible === null ||
+      !id_unidad_medida ||
+      !id_municipio
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error:
+          'Los campos "id_empresa", "nombre", "id_familia_material", "volumen_disponible", "id_unidad_medida" e "id_municipio" son obligatorios',
+      });
     }
-    
+
     // Validacion de volumen
-    if (Number(volumen_disponible) < 0) return res.status(400).json({ ok: false, error: 'El volumen no puede ser negativo.' });
-
-    // Resolucion de IDs asociados
-    const familyId = await resolveId('familias_material', id_familia_material ?? id_familia);
-    const unitId = await resolveId('unidades_medida', id_unidad_medida ?? unidad_volumen, 'abreviatura');
-    const municipalityId = await resolveId('municipios', id_municipio ?? municipio);
-    if (!familyId || !unitId || !municipalityId) return res.status(400).json({ ok: false, error: 'Familia, unidad o municipio no existe.' });
-
-    // Validar que el usuario pertenezca a una empresa
-    let companyId = undefined;
-    if (id_empresa && /^\d+$/.test(String(id_empresa))) {
-      companyId = Number(id_empresa);
-    }
-    if (!companyId) {
-      return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
+    if (Number(volumen_disponible) <= 0) {
+      return res.status(400).json({
+        ok: false,
+        error: 'El volumen disponible debe ser mayor que cero',
+      });
     }
 
-    // Verificar en la base de datos que la empresa exista
-    const { data: companyRow } = await supabase.from('empresas').select('id').eq('id', companyId).maybeSingle();
-    if (!companyRow) {
-      return res.status(403).json({ ok: false, error: 'Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.' });
+    // Validacion de municipio del Valle de Aburrá
+    if (!MUNICIPIOS_VALIDOS.includes(Number(id_municipio))) {
+      return res.status(400).json({
+        ok: false,
+        error: 'id_municipio inválido. Debe ser un municipio del Valle de Aburrá (1 a 10)',
+      });
     }
 
-    // Procesamiento y subida de la imagen
-    let finalFotoUrl = null;
-    const inputImage = req.body.image_base64 || image_url || req.body.foto_url;
-    if (inputImage && typeof inputImage === 'string') {
-      try {
-        finalFotoUrl = await uploadImageToStorage(inputImage, 'subproductos');
-      } catch (err) {
-        console.warn('[Subproductos] Fallback URL para la imagen:', err.message);
-        finalFotoUrl = inputImage.trim().slice(0, 500);
-      }
+    // Subida de imagen opcional
+    let foto_url = null;
+    if (image_base64) {
+      foto_url = await uploadImageToStorage(image_base64, 'subproductos');
     }
-    const isDisponible = disponible !== undefined ? Boolean(disponible) : true;
 
-    // Insercion del subproducto
-    const { data, error } = await supabase.from('subproductos').insert({
-      id_empresa: companyId, nombre, descripcion: descripcion || null, id_familia_material: familyId,
-      volumen_disponible: Number(volumen_disponible), id_unidad_medida: unitId, id_municipio: municipalityId,
-      direccion: direccion || null, foto_url: finalFotoUrl, disponible: isDisponible,
-    }).select(fields).single();
+    const esPublicado = Boolean(publicar);
 
-    if (error) {
-      if (error.code === '23503') return res.status(404).json({ ok: false, error: 'La empresa o familia indicada no existe.' });
-      throw error;
-    }
-    return res.status(201).json({ ok: true, mensaje: 'Subproducto registrado exitosamente', subproducto: await present(data) });
-  } catch (error) {
-    return next(error);
-  }
-}
+    const subproducto = await registrarSubproducto({
+      id_empresa: Number(id_empresa),
+      nombre,
+      id_familia_material: Number(id_familia_material),
+      volumen_disponible: Number(volumen_disponible),
+      id_unidad_medida: Number(id_unidad_medida),
+      descripcion,
+      id_municipio: Number(id_municipio),
+      direccion,
+      foto_url,
+      publicar: esPublicado,
+    });
 
-// Endpoint independiente para subir imagen de subproducto
-export async function subirImagenSubproducto(req, res, next) {
-  try {
-    const { image, image_url, foto_url } = req.body;
-    const inputImage = image || image_url || foto_url;
-    if (!inputImage) {
-      return res.status(400).json({ ok: false, error: 'Se requiere una imagen en formato Base64 o URL.' });
-    }
-    const publicUrl = await uploadImageToStorage(inputImage, 'subproductos');
-    return res.json({
+    return res.status(201).json({
       ok: true,
-      mensaje: 'Imagen subida exitosamente a Supabase Storage',
-      foto_url: publicUrl,
-      image_url: publicUrl,
+      mensaje: esPublicado
+        ? 'Subproducto publicado exitosamente'
+        : 'Subproducto guardado como borrador exitosamente',
+      subproducto,
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
-// Obtiene un subproducto por su ID
-export async function obtenerSubproducto(req, res, next) {
-  try {
-    const { data, error } = await supabase.from('subproductos').select(fields).eq('id', req.params.id).single();
-    if (error?.code === 'PGRST116') return res.status(404).json({ ok: false, error: 'Subproducto no encontrado.' });
-    if (error) throw error;
-    return res.json({ ok: true, subproducto: await present(data) });
-  } catch (error) {
-    return next(error);
-  }
-}
-
-// Revisa si la empresa es la dueña legitima del subproducto
-async function verificarPropietario(idSubproducto, idEmpresa) {
-  const { data, error } = await supabase
-    .from('subproductos')
-    .select('id_empresa, foto_url')
-    .eq('id', idSubproducto)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return { errorStatus: 404, errorMessage: 'Subproducto no encontrado.' };
-
-  if (idEmpresa !== undefined && idEmpresa !== null && String(data.id_empresa) !== String(idEmpresa)) {
-    return { errorStatus: 403, errorMessage: 'No tienes permiso sobre este subproducto.' };
-  }
-
-  return { product: data };
-}
-
-// Actualiza un subproducto existente
-export async function actualizarSubproducto(req, res, next) {
+// Obtener un subproducto por ID
+export async function getSubproducto(req, res, next) {
   try {
     const { id } = req.params;
-    const { id_empresa, volumen_disponible } = req.body;
-
-    // Validacion de empresa
-    if (!id_empresa) {
-      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para actualizar un subproducto.' });
-    }
-
-    // Validar permisos de propiedad
-    const { product: existingProduct, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
-    if (errorMessage) {
-      return res.status(errorStatus).json({ ok: false, error: errorMessage });
-    }
-
-    // Validar volumen
-    if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
-      return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero.' });
-    }
-
-    const currentFotoUrl = existingProduct?.foto_url || null;
-    const allowed = ['nombre', 'descripcion', 'volumen_disponible', 'foto_url', 'direccion', 'disponible'];
-    const changes = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
-
-    // Reemplazo de imagen si se envio una nueva
-    if (Object.hasOwn(req.body, 'image_url') || Object.hasOwn(req.body, 'foto_url')) {
-      const url = req.body.image_url || req.body.foto_url;
-      if (url && typeof url === 'string') {
-        try {
-          changes.foto_url = await uploadImageToStorage(url, 'subproductos', currentFotoUrl);
-        } catch {
-          changes.foto_url = url.trim().slice(0, 500);
-        }
-      } else {
-        if (currentFotoUrl) {
-          await deleteStorageFile(currentFotoUrl, 'Imagenes');
-        }
-        changes.foto_url = null;
-      }
-    }
-    if (Object.hasOwn(req.body, 'disponible')) {
-      changes.disponible = Boolean(req.body.disponible);
-    }
-    if (req.body.id_familia_material || req.body.id_familia) changes.id_familia_material = await resolveId('familias_material', req.body.id_familia_material ?? req.body.id_familia);
-    if (req.body.id_unidad_medida || req.body.unidad_volumen) changes.id_unidad_medida = await resolveId('unidades_medida', req.body.id_unidad_medida ?? req.body.unidad_volumen, 'abreviatura');
-    if (req.body.id_municipio || req.body.municipio) changes.id_municipio = await resolveId('municipios', req.body.id_municipio ?? req.body.municipio);
-
-    // Guardar cambios en la base de datos
-    const { data, error } = await supabase.from('subproductos').update(changes).eq('id', id).select(fields).single();
-    if (error?.code === 'PGRST116') return res.status(404).json({ ok: false, error: 'Subproducto no encontrado.' });
-    if (error) throw error;
-    return res.json({ ok: true, mensaje: 'Subproducto actualizado exitosamente', subproducto: await present(data) });
+    const subproducto = await obtenerSubproductoPorId(Number(id));
+    return res.status(200).json({ ok: true, subproducto });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
-// Obtiene las publicaciones propias de una empresa
-export async function misPublicaciones(req, res, next) {
+// Listar publicaciones propias (incluye borradores)
+export async function getMisPublicaciones(req, res, next) {
   try {
     const { id_empresa } = req.query;
     if (!id_empresa || !/^\d+$/.test(String(id_empresa))) {
-      return res.json({ ok: true, publicaciones: [] });
+      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio como query param' });
     }
-    const { data, error } = await supabase
-      .from('subproductos')
-      .select(fields)
-      .eq('id_empresa', Number(id_empresa))
-      .order('fecha_registro', { ascending: false });
-    if (error) throw error;
-    return res.json({ ok: true, publicaciones: await Promise.all(data.map(present)) });
+    const publicaciones = await listarMisPublicaciones(Number(id_empresa));
+    return res.status(200).json({ ok: true, publicaciones });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
-// Elimina un subproducto y su foto del storage
-export async function eliminarSubproducto(req, res, next) {
+// Actualizar datos de un subproducto
+export async function patchSubproducto(req, res, next) {
   try {
     const { id } = req.params;
-    const id_empresa = req.query.id_empresa || req.body?.id_empresa;
+    const { id_empresa, volumen_disponible, image_base64, ...resto } = req.body;
+
+    // Validacion de empresa
+    if (!id_empresa) {
+      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para editar un subproducto.' });
+    }
+
+    // Validacion de volumen
+    if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
+      return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero' });
+    }
+
+    const cambios = { ...resto };
+    if (volumen_disponible !== undefined) cambios.volumen_disponible = Number(volumen_disponible);
+
+    // Si mandan una imagen nueva, subir y reemplazar la anterior
+    if (image_base64) {
+      const actual = await obtenerSubproductoPorId(Number(id));
+      cambios.foto_url = await uploadImageToStorage(image_base64, 'subproductos', actual.foto_url);
+    }
+
+    const subproducto = await actualizarSubproducto(Number(id), Number(id_empresa), cambios);
+    return res.status(200).json({ ok: true, mensaje: 'Subproducto actualizado exitosamente', subproducto });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Eliminar un subproducto y su imagen
+export async function deleteSubproducto(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { id_empresa } = req.query;
 
     if (!id_empresa) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para eliminar un subproducto.' });
     }
 
-    // Validar propiedad
-    const { product, errorStatus, errorMessage } = await verificarPropietario(id, id_empresa);
-    if (errorMessage) {
-      return res.status(errorStatus).json({ ok: false, error: errorMessage });
+    const { foto_url } = await eliminarSubproducto(Number(id), Number(id_empresa));
+    if (foto_url) {
+      await deleteStorageFile(foto_url);
     }
 
-    // Eliminar foto del storage si existe
-    if (product?.foto_url) {
-      await deleteStorageFile(product.foto_url, 'Imagenes');
-    }
-
-    // Eliminar registro
-    const { error } = await supabase.from('subproductos').delete().eq('id', id);
-    if (error) throw error;
-    return res.json({ ok: true, mensaje: 'Subproducto eliminado exitosamente' });
+    return res.status(200).json({ ok: true, mensaje: 'Subproducto eliminado exitosamente' });
   } catch (error) {
-    return next(error);
+    next(error);
+  }
+}
+
+// Publicar o pasar a borrador un subproducto (HU-07)
+export async function patchPublicarSubproducto(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { id_empresa, publicar } = req.body;
+
+    if (!id_empresa) {
+      return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio.' });
+    }
+    if (typeof publicar !== 'boolean') {
+      return res.status(400).json({ ok: false, error: 'El campo "publicar" debe ser true o false.' });
+    }
+
+    const subproducto = await cambiarEstadoPublicacion(Number(id), Number(id_empresa), publicar);
+    return res.status(200).json({
+      ok: true,
+      mensaje: publicar ? 'Subproducto publicado exitosamente' : 'Subproducto pasado a borrador',
+      subproducto,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Subida de imagen independiente (por si el front sube la foto antes de crear el subproducto)
+export async function postSubirImagen(req, res, next) {
+  try {
+    const { image_base64 } = req.body;
+    if (!image_base64) {
+      return res.status(400).json({ ok: false, error: 'Se requiere "image_base64".' });
+    }
+    const foto_url = await uploadImageToStorage(image_base64, 'subproductos');
+    return res.status(200).json({ ok: true, mensaje: 'Imagen subida exitosamente', foto_url });
+  } catch (error) {
+    next(error);
   }
 }

@@ -48,9 +48,9 @@ export default function CatalogPage() {
       </div>
 
       {/* barra de busqueda */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mb-6 flex flex-col gap-8 sm:flex-row ">
         <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-400">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-700">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -71,7 +71,7 @@ export default function CatalogPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar material, empresa o sector..."
-            className="w-full rounded-xl border border-surface-200 bg-white py-3.5 pl-11 pr-4 text-ink-900 shadow-sm transition-colors placeholder:text-ink-400 focus:border-forest-600 focus:outline-none"
+            className="w-full rounded-2xl border border-surface-300 bg-white py-3.5 pl-11 pr-4 text-ink-900 shadow-sm transition-colors placeholder:text-ink-500 focus:border-forest-600 focus:outline-none"
           />
         </div>
 
@@ -79,7 +79,7 @@ export default function CatalogPage() {
         <select
           value={activeMunicipio}
           onChange={(e) => setActiveMunicipio(e.target.value)}
-          className="rounded-xl border border-surface-200 bg-white px-4 py-3.5 text-sm font-medium text-ink-700 shadow-sm focus:border-forest-600 focus:outline-none"
+          className="rounded-2xl border border-surface-200 bg-white px-4 py-3.5 text-sm font-medium text-ink-700 shadow-sm focus:border-forest-600 focus:outline-none"
         >
           <option value="todos">Todos los municipios</option>
           {MUNICIPIOS_VALLE_ABURRA.map((mun) => (
@@ -136,16 +136,13 @@ export default function CatalogPage() {
           <p className="text-sm mt-1">{error}</p>
         </div>
       ) : subproductos.length === 0 ? (
-        <div className="rounded-2xl border border-surface-200 bg-white p-12 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-surface-100 text-3xl">
+        <div className="rounded-2xl p-12 text-center ">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full  text-3xl">
             🔍
           </div>
           <h3 className="mt-4 text-lg font-bold text-ink-900">
             No se encontraron materiales
           </h3>
-          <p className="mt-1 text-sm text-ink-500">
-            Prueba ajustando los filtros o el término de búsqueda.
-          </p>
           <button
             type="button"
             onClick={() => {
@@ -153,7 +150,7 @@ export default function CatalogPage() {
               setActiveFamilia("todos");
               setActiveMunicipio("todos");
             }}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-surface-200 bg-white px-4 py-2 text-sm font-semibold text-forest-700 hover:bg-surface-50"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-surface-200 bg-white px-4 py-2 text-sm font-semibold text-forest-700 hover:bg-surface-50"
           >
             Restablecer filtros
           </button>

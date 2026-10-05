@@ -29,6 +29,8 @@ export default function PostSubproductPage() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [submitMode, setSubmitMode] = useState<"publicar" | "borrador">("publicar");
   const [frecuencia, setFrecuencia] = useState("Una vez");
   const [imageUrl, setImageUrl] = useState<string>();
 
@@ -58,31 +60,11 @@ export default function PostSubproductPage() {
     },
   });
 
-  if (isPersona) {
-    return (
-      <div className="mx-auto max-w-xl py-12 text-center">
-        <div className="rounded-3xl border border-surface-200 bg-white p-8 shadow-sm">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-3xl text-amber-600">
-            ⚠️
-          </div>
-          <h2 className="mt-4 text-xl font-bold text-ink-900">
-            Publicación reservada para empresas
-          </h2>
-          <p className="mt-2 text-sm text-ink-500 leading-relaxed">
-            Las personas naturales y recicladores individuales no pueden publicar subproductos. Esta función está reservada exclusivamente para empresas generadoras o transformadoras.
-          </p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link
-              to="/catalog"
-              className="rounded-xl bg-[#23ce6b] px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#1fb85f]"
-            >
-              Explorar catálogo
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+ useEffect(() => {
+    if (isPersona) {
+      navigate("/disable-post-subproduct");
+    }
+  }, [isPersona, navigate]);
 
   async function onSubmit(values: SubproductoFormValues) {
     setSubmitError(null);
@@ -104,6 +86,8 @@ export default function PostSubproductPage() {
         return;
       }
 
+      const esPublicar = submitMode === "publicar";
+
       await registrarSubproducto({
         id_empresa: companyId,
         nombre: values.nombre,
@@ -113,15 +97,22 @@ export default function PostSubproductPage() {
         unidad_volumen: values.unidad_volumen as UnidadVolumen,
         municipio: values.municipio,
         image_url: imageUrl,
+        publicar: esPublicar,
       });
+
+      setSuccessMessage(
+        esPublicar
+          ? "¡Material publicado con éxito! Redirigiendo al catálogo..."
+          : "¡Guardado como borrador con éxito! Redirigiendo a tu perfil..."
+      );
       setSuccess(true);
       reset();
       setTimeout(() => {
-        navigate("/catalog");
+        navigate(esPublicar ? "/catalog" : "/profile");
       }, 1500);
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "No se pudo publicar el material."
+        err instanceof Error ? err.message : "No se pudo registrar el material."
       );
     }
   }
@@ -172,7 +163,7 @@ export default function PostSubproductPage() {
       {success && (
         <div className="mb-6">
           <Banner variant="success">
-            ¡Material publicado con éxito! Redirigiendo al catálogo...
+            {successMessage || "¡Material procesado con éxito!"}
           </Banner>
         </div>
       )}
@@ -294,12 +285,12 @@ export default function PostSubproductPage() {
             </FormField>
 
             {/* Foto del material */}
-            <div className="grid gap-4 sm:grid-cols-[1fr_192px] sm:items-end">
+            <div className="grid gap-8 sm:grid-cols-[1fr_240px] sm:items-end">
               <div>
                 <label className="field-label">Foto del material</label>
                 <PhotoDropzone maxFiles={3} maxSizeMB={5} onPrimaryImageChange={setImageUrl} showPreviews={false} />
               </div>
-              <div className="flex h-48 w-full items-center justify-center overflow-hidden rounded-xl bg-[#cce9df] sm:w-48">
+              <div className="flex h-60 w-60 items-center justify-center overflow-hidden rounded-xl bg-[#cce9df] sm:w-60">
                 {imageUrl ? (
                   <img src={imageUrl} alt="Vista previa del material" className="h-full w-full object-cover" />
                 ) : (
@@ -309,14 +300,23 @@ export default function PostSubproductPage() {
             </div>
           </div>
 
-          {/* Botones de publicar o cancelar */}
-          <div className="mt-8 flex items-center justify-start gap-3 border-t border-surface-100 pt-6">
+          {/* Botones de publicar, guardar borrador o cancelar */}
+          <div className="mt-8 flex flex-wrap items-center justify-start gap-3 border-t border-surface-100 pt-6">
             <button
               type="submit"
+              onClick={() => setSubmitMode("publicar")}
               disabled={isSubmitting}
               className="inline-flex items-center justify-center rounded-xl bg-[#23ce6b] px-7 py-3 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Publicando…" : "Publicar"}
+              {isSubmitting && submitMode === "publicar" ? "Publicando…" : "Publicar"}
+            </button>
+            <button
+              type="submit"
+              onClick={() => setSubmitMode("borrador")}
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center rounded-xl border border-forest-600 bg-white px-6 py-3 text-base font-bold text-forest-700 shadow-sm transition-all hover:bg-forest-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting && submitMode === "borrador" ? "Guardando…" : "Guardar borrador"}
             </button>
             <Link
               to="/catalog"
