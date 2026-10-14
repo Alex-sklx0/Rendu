@@ -1,6 +1,7 @@
 // Zona para subir fotos arrastrando o seleccionando archivos
 
 import { useState, useCallback, useRef, type DragEvent } from "react";
+import inlineSvg0 from "@/img/photo.svg";
 import clsx from "@/lib/clsx";
 
 type PhotoDropzoneProps = {
@@ -117,21 +118,7 @@ export function PhotoDropzone({ maxFiles = 3, maxSizeMB = 5, onPrimaryImageChang
         >
           {/* Icono de subida */}
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-forest-700/10 text-forest-700">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
+            <img src={inlineSvg0} width={"24"} height={"24"} alt="" />
           </div>
 
           <p className="text-sm font-medium text-ink-700">

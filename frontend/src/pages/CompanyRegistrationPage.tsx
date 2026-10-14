@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { registrarEmpresa, registrarUsuario } from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
+import { Select } from "@/components/ui/Select";
 
 export default function CompanyRegistrationPage() {
   const navigate = useNavigate();
@@ -17,6 +19,16 @@ export default function CompanyRegistrationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Formateador de NIT: añade guion automatico tras el 9no digito y limita a 10 digitos totales
+  function handleNitChange(val: string) {
+    const raw = val.replace(/[^\d]/g, "").slice(0, 10);
+    if (raw.length > 9) {
+      setNit(`${raw.slice(0, 9)}-${raw.slice(9, 10)}`);
+    } else {
+      setNit(raw);
+    }
+  }
+
   // Envio del formulario de registro
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,6 +36,11 @@ export default function CompanyRegistrationPage() {
     // Validacion de campos requeridos
     if (!email || !password || !nombreEmpresa || !nit || !municipio) {
       setError("Por favor completa todos los campos.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
@@ -49,6 +66,8 @@ export default function CompanyRegistrationPage() {
         email: user.email,
         nombre: empresa.nombre || nombreEmpresa,
         id_empresa: empresa.id,
+        tipo: tipoEmpresa,
+        municipio,
       }));
 
       // Redirigir al modulo de comunicacion o catalogo
@@ -61,38 +80,40 @@ export default function CompanyRegistrationPage() {
   }
 
   return (
-    <div className="flex min-h-[85vh] items-center justify-center bg-[#eef2f0] px-4 py-8">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm sm:p-10">
+    <div className="flex min-h-[90vh] items-center justify-center bg-[#eef2f0] px-4 py-10">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-xl sm:p-12">
+        {/* Decoracion verde de la esquina estilo splash */}
+        <div className="pointer-events-none absolute left-6 top-6 h-12 w-24 rounded-tl-2xl border-l-4 border-t-4 border-[#23ce6b]" />
         
         {/* Logo principal */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-5">
           <RenduLogo size="lg" />
         </div>
 
-        {/* Titulo y subtitulo */}
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-ink-900">
-            Hablanos de tu empresa
+        {/* Titulo y subtitulo aumentados de tamaño */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
+            Háblanos de tu empresa
           </h1>
-          <p className="mt-1.5 text-xs text-ink-500">
-            Solo necesitamos los datos básicos para comenzar.
+          <p className="mt-2 text-sm leading-relaxed text-ink-600 sm:text-base">
+            Solo necesitamos los datos básicos para conectar tus subproductos.
           </p>
         </div>
 
         {/* Mensaje de error si falla el registro */}
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-center text-xs font-semibold text-red-600">
+          <div className="mb-6 rounded-2xl bg-red-50 p-4 text-center text-sm font-semibold text-red-700 border border-red-200">
             {error}
           </div>
         )}
-
+Faltan 
         {/* Formulario de registro */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           
           {/* Nombre y NIT */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="nombreEmpresa">
+              <label className="block text-[17px] font-bold text-ink-800 mb-1.5" htmlFor="nombreEmpresa">
                 Nombre de empresa
               </label>
               <input
@@ -100,77 +121,54 @@ export default function CompanyRegistrationPage() {
                 type="text"
                 value={nombreEmpresa}
                 onChange={(e) => setNombreEmpresa(e.target.value)}
-                placeholder="Ej. Fibretex"
-                className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
+                placeholder="Ej. Fibretex S.A.S."
+                required
+                className="w-full rounded-2xl border border-surface-400 px-4 py-3 text-sm font-semibold text-ink-900 placeholder:font-normal placeholder:text-ink-400 transition-colors hover:border-surface-400 focus:border-[#23ce6b] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="nit">
-                Nit
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[17px] font-bold text-ink-800" htmlFor="nit">
+                  NIT con dígito de verificación
+                </label>
+              </div>
               <input
                 id="nit"
                 type="text"
                 value={nit}
-                onChange={(e) => setNit(e.target.value)}
-                placeholder="Ej. 123456789 - 1"
-                className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
+                onChange={(e) => handleNitChange(e.target.value)}
+                placeholder="Ej. 900123456-1"
+                maxLength={11}
+                required
+                className="w-full rounded-2xl border border-surface-400 px-4 py-3 text-sm font-semibold text-ink-900 placeholder:font-normal placeholder:text-ink-400 transition-colors hover:border-surface-400 focus:border-[#23ce6b] focus:outline-none font-mono"
               />
             </div>
           </div>
 
           {/* Municipio y Tipo de empresa */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="municipio">
+              <label className="block text-[17px] font-bold text-ink-800 mb-1.5" htmlFor="municipio">
                 Municipio
               </label>
-              <div className="relative">
-                <select
-                  id="municipio"
-                  value={municipio}
-                  onChange={(e) => setMunicipio(e.target.value)}
-                  className="w-full appearance-none rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 pr-8 text-xs text-ink-900 focus:border-[#23ce6b] focus:outline-none transition-colors"
-                >
-                  {MUNICIPIOS_VALLE_ABURRA.map((mun) => (
-                    <option key={mun} value={mun}>
-                      {mun}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-ink-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              </div>
+              <Select id="municipio" value={municipio} onChange={(e) => setMunicipio(e.target.value)}>
+                {MUNICIPIOS_VALLE_ABURRA.map((mun) => <option key={mun} value={mun}>{mun}</option>)}
+              </Select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="tipoEmpresa">
+              <label className="block text-[17px] font-bold text-ink-800 mb-1.5" htmlFor="tipoEmpresa">
                 Tipo de empresa
               </label>
-              <div className="relative">
-                <select
-                  id="tipoEmpresa"
-                  value={tipoEmpresa}
-                  onChange={(e) => setTipoEmpresa(e.target.value)}
-                  className="w-full appearance-none rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 pr-8 text-xs text-ink-900 focus:border-[#23ce6b] focus:outline-none transition-colors"
-                >
-                  <option value="Generador">Generador</option>
-                  <option value="Transformador">Transformador</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-ink-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
-              </div>
+              <Select id="tipoEmpresa" value={tipoEmpresa} onChange={(e) => setTipoEmpresa(e.target.value)}>
+                <option value="Generador">Generador (Produce subproductos)</option>
+                <option value="Transformador">Transformador (Aprovecha materiales)</option>
+              </Select>
             </div>
           </div>
 
           {/* Correo electronico */}
           <div>
-            <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="email">
+            <label className="block text-[17px] font-bold text-ink-800 mb-1.5" htmlFor="email">
               Correo empresarial
             </label>
             <input
@@ -179,40 +177,42 @@ export default function CompanyRegistrationPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contacto@empresa.com"
-              className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
+              required
+              className="w-full rounded-2xl border border-surface-400 px-4 py-3 text-sm font-semibold text-ink-900 placeholder:font-normal placeholder:text-ink-400 transition-colors hover:border-surface-400 focus:border-[#23ce6b] focus:outline-none"
             />
           </div>
 
-          {/* Contraseña */}
+          {/* Contraseña con validador visible y boton mostrar/ocultar */}
           <div>
-            <label className="block text-xs font-bold text-ink-800 mb-1" htmlFor="password">
+            <label className="block text-[17px] font-bold text-ink-800 mb-1.5" htmlFor="password">
               Contraseña
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Ej. Miclave123*"
-              className="w-full rounded-xl border border-surface-200 px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-300 focus:border-[#23ce6b] focus:outline-none transition-colors"
+              placeholder="Ingresa una contraseña segura"
+              className="border-surface-400"
+              showRules={true}
+              required
             />
           </div>
 
           {/* Botones de accion */}
-          <div className="space-y-2.5 pt-3">
+          <div className="space-y-3 pt-4">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#23ce6b] py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] disabled:opacity-50"
+              className="w-full rounded-2xl bg-[#23ce6b] py-3.5 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] disabled:opacity-50 cursor-pointer"
             >
-              {isSubmitting ? "Creando cuenta…" : "Crear cuenta"}
+              {isSubmitting ? "Creando cuenta de empresa…" : "Crear cuenta"}
             </button>
 
             <Link
               to="/pre-register"
-              className="flex w-full items-center justify-center rounded-xl bg-[#eef2f0] py-2.5 text-sm font-bold text-ink-700 transition-colors hover:bg-surface-200"
+              className="flex w-full items-center justify-center rounded-2xl bg-surface-100 py-3 text-sm font-bold text-ink-700 transition-colors hover:bg-surface-200"
             >
-              Volver
+              ← Volver
             </Link>
           </div>
         </form>

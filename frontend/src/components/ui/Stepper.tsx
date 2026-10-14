@@ -1,6 +1,7 @@
 // Indicador de pasos de un formulario
 
 import clsx from "@/lib/clsx";
+import inlineSvg6 from "@/img/check-green.svg";
 
 type Step = {
   label: string;
@@ -38,19 +39,7 @@ export function Stepper({ steps, currentStep }: StepperProps) {
                 )}
               >
                 {isCompleted ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <img src={inlineSvg6} width={"16"} height={"16"} alt="" />
                 ) : (
                   index + 1
                 )}

@@ -1,6 +1,10 @@
 // Pagina para registrar un nuevo subproducto
 
 import { useState } from "react";
+import inlineSvg25 from "@/img/recicle.svg";
+import inlineSvg26 from "@/img/location.svg";
+import inlineSvg27 from "@/img/alert.svg";
+import inlineSvg28 from "@/img/arrow.svg";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -75,14 +79,7 @@ export default function RegisterSubproductPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             {/* Icono de reciclaje */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F5233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M7 19H4.815a1.83 1.83 0 0 1-1.57-.881 1.785 1.785 0 0 1-.004-1.784L7.196 9.5" />
-              <path d="M11 19h8.203a1.83 1.83 0 0 0 1.556-.89 1.784 1.784 0 0 0 0-1.775l-1.226-2.12" />
-              <path d="m14 16-3 3 3 3" />
-              <path d="M8.293 13.596 7.196 9.5 3.1 10.598" />
-              <path d="m9.344 5.811 1.093-1.892A1.83 1.83 0 0 1 12.013 3a1.784 1.784 0 0 1 1.575.887l3.974 6.835" />
-              <path d="m13.378 9.633 4.096 1.098 1.097-4.096" />
-            </svg>
+            <img src={inlineSvg25} width={"18"} height={"18"} alt="" />
             <span className="text-xs font-bold tracking-[0.15em] uppercase text-forest-600">
               Nuevo registro
             </span>
@@ -224,10 +221,7 @@ export default function RegisterSubproductPage() {
 
         {/* Aviso sobre la ubicacion */}
         <div className="info-banner mb-8">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
+          <img src={inlineSvg26} width={"16"} height={"16"} className={"flex-shrink-0"} alt="" />
           La ubicación exacta solo será visible para contactos autorizados.
         </div>
 
@@ -238,10 +232,7 @@ export default function RegisterSubproductPage() {
             variant="ghost"
             onClick={() => navigate(-1)}
             iconLeft={
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
+              <img src={inlineSvg27} width={"16"} height={"16"} alt="" />
             }
           >
             Volver
@@ -255,10 +246,7 @@ export default function RegisterSubproductPage() {
               type="submit"
               disabled={isSubmitting}
               iconRight={
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
+                <img src={inlineSvg28} width={"16"} height={"16"} alt="" />
               }
             >
               {isSubmitting ? "Guardando…" : "Continuar"}

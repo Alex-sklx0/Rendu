@@ -1,6 +1,12 @@
 // Pagina para crear una cuenta de persona o empresa
 
 import { useState } from "react";
+import inlineSvg19 from "@/img/check-green.svg";
+import inlineSvg20 from "@/img/arrow.svg";
+import inlineSvg21 from "@/img/person.svg";
+import inlineSvg22 from "@/img/company.svg";
+import inlineSvg23 from "@/img/list.svg";
+import inlineSvg24 from "@/img/arrow.svg";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
@@ -61,18 +67,13 @@ export default function RegisterPage() {
     return (
       <div className="register-card text-center py-12">
         <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-forest-700/10 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F5233" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <img src={inlineSvg19} width={"28"} height={"28"} alt="" />
         </div>
         <h2 className="text-xl font-bold text-ink-900 mb-2">¡Cuenta creada!</h2>
         <p className="text-ink-500 text-sm mb-6">Tu cuenta ha sido registrada exitosamente.</p>
         <Link to="/subproducts/new" className="btn-primary">
           Publicar subproducto
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
+          <img src={inlineSvg20} width={"16"} height={"16"} alt="" />
         </Link>
       </div>
     );
@@ -103,10 +104,7 @@ export default function RegisterPage() {
           onClick={() => { setActiveTab("persona"); setSubmitError(null); }}
         >
           {/* Icono de persona */}
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <img src={inlineSvg21} width={"16"} height={"16"} alt="" />
           Persona
         </button>
         <button
@@ -115,19 +113,7 @@ export default function RegisterPage() {
           onClick={() => { setActiveTab("empresa"); setSubmitError(null); }}
         >
           {/* Icono de edificio */}
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-            <path d="M9 22v-4h6v4" />
-            <path d="M8 6h.01" />
-            <path d="M16 6h.01" />
-            <path d="M12 6h.01" />
-            <path d="M12 10h.01" />
-            <path d="M12 14h.01" />
-            <path d="M16 10h.01" />
-            <path d="M16 14h.01" />
-            <path d="M8 10h.01" />
-            <path d="M8 14h.01" />
-          </svg>
+          <img src={inlineSvg22} width={"16"} height={"16"} alt="" />
           Empresa
         </button>
       </div>
@@ -217,10 +203,7 @@ export default function RegisterPage() {
             disabled={personaForm.formState.isSubmitting}
             className="w-full !py-3.5 !text-base"
             iconRight={
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              <img src={inlineSvg23} width={"18"} height={"18"} alt="" />
             }
           >
             {personaForm.formState.isSubmitting ? "Creando cuenta…" : "Crear cuenta"}
@@ -320,10 +303,7 @@ export default function RegisterPage() {
             disabled={empresaForm.formState.isSubmitting}
             className="w-full !py-3.5 !text-base"
             iconRight={
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
+              <img src={inlineSvg24} width={"18"} height={"18"} alt="" />
             }
           >
             {empresaForm.formState.isSubmitting ? "Creando cuenta…" : "Crear cuenta"}

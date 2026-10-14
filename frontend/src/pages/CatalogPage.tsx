@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import inlineSvg7 from "@/img/search-black.svg";
 import { getCatalogo } from "@/api/client";
 import type { SubproductoCatalogo } from "@/types";
 import { SubproductCard } from "@/components/ui/SubproductCard";
 import { FAMILIAS_MATERIAL, MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
+import { Select } from "@/components/ui/Select";
 
 export default function CatalogPage() {
   const [subproductos, setSubproductos] = useState<SubproductoCatalogo[]>([]);
@@ -57,20 +59,7 @@ export default function CatalogPage() {
       <div className="mb-6 flex flex-col gap-8 sm:flex-row ">
         <div className="relative flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-700">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            <img src={inlineSvg7} width={"20"} height={"20"} alt="" />
           </div>
           <input
             type="text"
@@ -82,10 +71,9 @@ export default function CatalogPage() {
         </div>
 
         {/* filtro de municipios */}
-        <select
+        <Select
           value={activeMunicipio}
           onChange={(e) => setActiveMunicipio(e.target.value)}
-          className="rounded-2xl border border-surface-200 bg-white px-4 py-3.5 text-sm font-medium text-ink-700 shadow-sm focus:border-forest-600 focus:outline-none"
         >
           <option value="todos">Todos los municipios</option>
           {MUNICIPIOS_VALLE_ABURRA.map((mun) => (
@@ -93,7 +81,7 @@ export default function CatalogPage() {
               {mun}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* filtro de categorías (selección múltiple) */}
