@@ -5,26 +5,26 @@ import { NotFoundLogo } from "@/components/ui/NotFoundLogo";
 
 export default function NotFoundPage() {
   return (
-    <div className="flex min-h-[85vh] items-center justify-center px-4 py-8">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-sm sm:p-12">
+    <div className="flex min-h-screen items-center justify-center bg-white px-6 py-12">
+      <div className="w-full max-w-3xl rounded-3xl bg-white p-12 text-center sm:p-16">
         {/* Logo */}
-        <div className="mb-6 flex justify-center">
+        <div className="mb-1 flex justify-center">
           <NotFoundLogo size="xl" />
         </div>
 
         {/* Titulo y texto del error */}
-        <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
+        <h1 className="text-4xl font-extrabold text-ink-900 sm:text-5xl">
           ¡Página no encontrada!
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink-500">
+        <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-500 sm:text-xl">
           Lo sentimos, la página que estás buscando no existe.
         </p>
 
         {/* Botones para ir al catalogo o al inicio */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             to="/"
-            className="w-full sm:w-auto rounded-xl bg-[#23ce6b] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f]"
+            className="w-full rounded-2xl bg-[#23ce6b] px-8 py-4 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] sm:w-auto sm:text-lg"
           >
             Volver atrás
           </Link>

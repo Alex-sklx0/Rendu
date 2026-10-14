@@ -1,6 +1,6 @@
 // Logo de Rendu con texto opcional
 
-import iconImg from "@/img/not_found.png";
+import iconImg from "@/img/not-found.svg";
 
 interface RenduLogoProps {
   className?: string;
@@ -19,12 +19,12 @@ export function NotFoundLogo({
     sm: { imgClass: "h-6 w-6", font: "text-lg" },
     md: { imgClass: "h-8 w-8", font: "text-2xl" },
     lg: { imgClass: "h-12 w-12", font: "text-3xl" },
-    xl: { imgClass: "h-28 w-28", font: "text-4xl" },
+    xl: { imgClass: "h-64 w-64", font: "text-4xl" },
     header: { imgClass: "h-20 w-20", font: "text-3xl" },
   }[size];
 
   return (
-    <div className={`inline-flex items-center gap-2.5 ${className}`}>
+    <div className={`inline-flex items-center ${className}`}>
       {/* Logo de 404 */}
       <img
         src={iconImg}
@@ -33,7 +33,7 @@ export function NotFoundLogo({
       />
 
       {showText && (
-        <span className={`font-bold tracking-tight ${dimensions.font} ${textColor}`}>
+        <span className={`font-bold tracking-tight text-6xl ${dimensions.font} ${textColor}`}>
           404
         </span>
       )}
