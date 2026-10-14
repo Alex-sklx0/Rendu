@@ -135,8 +135,16 @@ export async function registrarUsuario(input: {
 export async function loginUsuario(input: {
   email: string;
   password: string;
-}): Promise<{ usuario: Usuario; empresa?: Empresa | null; persona?: unknown }> {
-  const response = await post<ApiResponse<{ usuario: Usuario; empresa?: Empresa | null; persona?: unknown }>>("/usuarios/login", input);
+}): Promise<{
+  usuario: Usuario;
+  empresa?: Empresa | null;
+  persona?: { id: number; nombre: string; id_municipio: number; id_rol: number } | null;
+}> {
+  const response = await post<ApiResponse<{
+    usuario: Usuario;
+    empresa?: Empresa | null;
+    persona?: { id: number; nombre: string; id_municipio: number; id_rol: number } | null;
+  }>>("/usuarios/login", input);
   if (!response.ok) throw new Error(response.error || "Error al iniciar sesión.");
   return { usuario: response.usuario, empresa: response.empresa };
 }

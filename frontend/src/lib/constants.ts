@@ -47,5 +47,5 @@ export const TIPOS_ACTOR: { value: TipoActor; label: string }[] = [
   { value: "empresa_generadora", label: "Empresa generadora" },
   { value: "empresa_transformadora", label: "Empresa transformadora" },
   { value: "eca", label: "Estación de Clasificación y Aprovechamiento (ECA)" },
-  { value: "reciclador", label: "Reciclador / gestor autorizado" },
+  { value: "reciclador", label: "Reciclador" },
 ];

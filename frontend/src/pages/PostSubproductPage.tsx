@@ -16,6 +16,7 @@ import { subproductoSchema, type SubproductoFormValues } from "@/lib/validators"
 import { UNIDADES_VOLUMEN } from "@/lib/constants";
 import type { UnidadVolumen } from "@/lib/constants";
 import { registrarSubproducto } from "@/api/client";
+import { motion } from "motion/react";
 
 
 const FRECUENCIAS = [
@@ -114,34 +115,28 @@ export default function PostSubproductPage() {
       setSubmitError(
         err instanceof Error ? err.message : "No se pudo registrar el material."
       );
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  }
+
+  function onFormError() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
     <div className="mx-auto max-w-3xl pb-16">
       {/* Boton para volver al catalogo */}
       <div className="mb-4">
-        <button
+        <motion.button
           type="button"
           onClick={() => navigate("/catalog")}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-forest-700 transition-colors hover:text-forest-900"
+          whileHover={{ x: -12 }}
+          whileTap={{ x: -3 }}
+          transition={{ type: "spring", stiffness: 340, damping: 26, mass: 0.7 }}
+          className="relative -left-3 inline-flex items-center gap-2 px-3 py-2 text-lg font-bold text-forest-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-600/40"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Volver al catálogo
-        </button>
+          ← Volver al catálogo
+        </motion.button>
       </div>
 
       {/* Encabezado de la pagina */}
@@ -169,8 +164,8 @@ export default function PostSubproductPage() {
       )}
 
       {/* Formulario de publicacion */}
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">
+      <form onSubmit={handleSubmit(onSubmit, onFormError)} noValidate>
+        <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-8 shadow-2xl">
           <div className="space-y-6">
             {/* Tipo de material y cantidad */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -184,6 +179,7 @@ export default function PostSubproductPage() {
                   id="nombre"
                   placeholder="Ej. Recortes de algodón"
                   hasError={!!errors.nombre}
+                  className="rounded-2xl"
                   {...register("nombre")}
                 />
               </FormField>
@@ -203,13 +199,14 @@ export default function PostSubproductPage() {
                     inputMode="decimal"
                     placeholder="Ej. 250"
                     hasError={!!errors.volumen_disponible}
+                    className="rounded-2xl"
                     {...register("volumen_disponible")}
                   />
                   <Select
                     id="unidad_volumen"
                     hasError={!!errors.unidad_volumen}
                     defaultValue="kg"
-                    className="w-24"
+                    className="w-24 rounded-2xl"
                     {...register("unidad_volumen")}
                   >
                     {UNIDADES_VOLUMEN.map((unidad) => (
@@ -228,18 +225,17 @@ export default function PostSubproductPage() {
                 <label className="field-label" htmlFor="frecuencia">
                   Frecuencia
                 </label>
-                <select
+                <Select
                   id="frecuencia"
                   value={frecuencia}
                   onChange={(e) => setFrecuencia(e.target.value)}
-                  className="field-input"
                 >
                   {FRECUENCIAS.map((f) => (
                     <option key={f.value} value={f.value}>
                       {f.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <FormField
@@ -280,6 +276,7 @@ export default function PostSubproductPage() {
                 rows={3}
                 placeholder="Estado del material, condiciones de entrega, composición..."
                 hasError={!!errors.descripcion}
+                className="rounded-2xl"
                 {...register("descripcion")}
               />
             </FormField>
@@ -290,7 +287,7 @@ export default function PostSubproductPage() {
                 <label className="field-label">Foto del material</label>
                 <PhotoDropzone maxFiles={3} maxSizeMB={5} onPrimaryImageChange={setImageUrl} showPreviews={false} />
               </div>
-              <div className="flex h-60 w-60 items-center justify-center overflow-hidden rounded-xl bg-[#cce9df] sm:w-60">
+              <div className="flex h-60 w-60 items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] sm:w-60">
                 {imageUrl ? (
                   <img src={imageUrl} alt="Vista previa del material" className="h-full w-full object-cover" />
                 ) : (
@@ -301,26 +298,26 @@ export default function PostSubproductPage() {
           </div>
 
           {/* Botones de publicar, guardar borrador o cancelar */}
-          <div className="mt-8 flex flex-wrap items-center justify-start gap-3 border-t border-surface-100 pt-6">
-            <button
-              type="submit"
-              onClick={() => setSubmitMode("publicar")}
-              disabled={isSubmitting}
-              className="inline-flex items-center justify-center rounded-xl bg-[#23ce6b] px-7 py-3 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting && submitMode === "publicar" ? "Publicando…" : "Publicar"}
-            </button>
+          <div className="mt-6 flex flex-wrap items-center justify-start gap-3 pt-6">
             <button
               type="submit"
               onClick={() => setSubmitMode("borrador")}
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center rounded-xl border border-forest-600 bg-white px-6 py-3 text-base font-bold text-forest-700 shadow-sm transition-all hover:bg-forest-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-surface-300 bg-ink-700 px-6 py-3 text-base font-bold text-white shadow-sm transition-all hover:bg-surface-200 hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting && submitMode === "borrador" ? "Guardando…" : "Guardar borrador"}
+              {isSubmitting && submitMode === "borrador" ? "Guardando…" : "Guardar como borrador"}
+            </button>
+            <button
+              type="submit"
+              onClick={() => setSubmitMode("publicar")}
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#23ce6b] px-7 py-3 text-base font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting && submitMode === "publicar" ? "Publicando…" : "Publicar ahora"}
             </button>
             <Link
               to="/catalog"
-              className="inline-flex items-center justify-center rounded-xl border border-surface-200 bg-surface-100 px-6 py-3 text-base font-bold text-forest-800 transition-colors hover:bg-surface-200"
+              className="inline-flex items-center justify-center rounded-2xl border border-surface-200 bg-white px-6 py-3 text-base font-bold text-ink-600 transition-colors hover:bg-signal-error hover:text-white hover:border-signal-error"
             >
               Cancelar
             </Link>

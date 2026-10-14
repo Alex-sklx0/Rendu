@@ -64,8 +64,7 @@ export async function buscarCatalogo({ q, familias = [], municipios = [] }) {
   let query = supabase
     .from('subproductos')
     .select(SELECT_PUBLICACION)
-    .eq('id_estado_publicacion', ESTADO_PUBLICADO)
-    .eq('disponible', true);
+    .eq('id_estado_publicacion', ESTADO_PUBLICADO);
 
   if (q) {
     const patron = `%${q}%`;

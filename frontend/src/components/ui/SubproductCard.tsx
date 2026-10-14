@@ -44,24 +44,22 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
       {/* Detalles del material */}
       <div className="flex flex-1 flex-col p-5">
         {/* Categoria y estado */}
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-2.5 py-0.5 text-xs font-bold text-forest-700">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-2 text-[13px] font-bold text-forest-800">
             {subproducto.familia}
           </span>
-          {!isDisponible && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-              No disponible
-            </span>
-          )}
+          <span className="inline-flex items-center rounded-md bg-surface-100 px-3 py-2 font-bold text-forest-800 shrink-0 rounded-xl text-xs">
+            ⮟ {subproducto.municipio}
+          </span>
         </div>
 
         {/* Nombre del material */}
-        <h3 className="line-clamp-1 text-lg font-bold text-ink-900">
+        <h3 className="line-clamp-1 text-xl font-bold text-ink-900">
           {subproducto.nombre}
         </h3>
 
         {/* Cantidad disponible */}
-        <p className="mt-1 text-xl font-extrabold text-ink-900">
+        <p className="mt-2 text-xl font-extrabold text-ink-900">
           {subproducto.volumen_disponible.toLocaleString("es-CO")}{" "}
           <span className="text-sm font-medium text-ink-600">
             {subproducto.unidad_volumen}
@@ -69,9 +67,13 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
         </p>
 
         {/* Empresa y municipio */}
-        <p className="mt-1 text-xs text-ink-500">
-          {subproducto.empresa} · {subproducto.municipio}
-        </p>
+        <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-surface-100 pt-2 text-xs">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm font-extrabold text-ink-700 truncate" title={subproducto.empresa || "Empresa"}>
+              {subproducto.empresa || "Empresa"}
+            </span>
+          </div>
+        </div>
 
         {/* Boton para ver el detalle */}
         <div className="mt-5 pt-2">
