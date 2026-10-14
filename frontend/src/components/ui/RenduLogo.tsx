@@ -1,6 +1,6 @@
 // Logo de Rendu con texto opcional
 
-import iconImg from "@/img/icon.png";
+import iconImg from "@/img/rendu-icon.svg";
 
 interface RenduLogoProps {
   className?: string;

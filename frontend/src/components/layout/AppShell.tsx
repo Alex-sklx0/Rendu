@@ -1,13 +1,38 @@
 // Estructura principal de la app con encabezado y contenido
 
-import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import catalogIcon from "@/img/catalog.svg";
+import userIcon from "@/img/user-black.svg";
+import notifyImg from "@/img/notify.svg";
 import { RenduLogo } from "@/components/ui/RenduLogo";
-import notifyImg from "@/img/notify.png";
+import { RubberSegment } from "@/components/ui/RubberSegment";
 
 export function AppShell() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isStandaloneScreen = location.pathname === "/" || [
+  const knownRoutePrefixes = [
+    "/splash",
+    "/login",
+    "/pre-register",
+    "/person-registration",
+    "/company-registration",
+    "/communication",
+    "/catalog",
+    "/profile",
+    "/subproduct",
+    "/subproducts",
+    "/post-subproduct",
+    "/matching",
+    "/register",
+    "/disable-post-subproduct",
+  ];
+  const isKnownRoute =
+    location.pathname === "/" ||
+    knownRoutePrefixes.some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+    );
+  const isStandaloneScreen = !isKnownRoute || location.pathname === "/" || [
     "/splash",
     "/splash1",
     "/splash2",
@@ -20,6 +45,8 @@ export function AppShell() {
   ].some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
   const isAuthenticated = typeof window !== "undefined" && Boolean(localStorage.getItem("isAuthenticated"));
+  const isCatalogNavigationActive =
+    location.pathname === "/catalog" || location.pathname.startsWith("/catalog/");
   const storedUserStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
   let isPersona = false;
   if (storedUserStr) {
@@ -30,6 +57,43 @@ export function AppShell() {
       // Ignorar error de JSON parse
     }
   }
+  const navigationItems = [
+    ...(!isPersona
+      ? [{
+          value: "publish",
+          label: "Publicar",
+          path: isAuthenticated ? "/post-subproduct" : "/login",
+          icon: <span aria-hidden="true" className="text-base font-extrabold">+</span>,
+        }]
+      : []),
+    {
+      value: "catalog",
+      label: "Catalogo",
+      path: "/catalog",
+      icon: (
+        <img
+          src={catalogIcon}
+          width="16"
+          height="16"
+          aria-hidden="true"
+          alt=""
+          className={isCatalogNavigationActive ? "brightness-0 invert" : ""}
+        />
+      ),
+    },
+    {
+      value: "matching",
+      label: "Matching",
+      path: "/matching",
+      icon: <span aria-hidden="true" className="text-base">↔</span>,
+    },
+  ];
+  const isPrimaryNavigationRoute = ["/catalog", "/post-subproduct", "/matching"].some(
+    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+  );
+  const activeNavigationValue = isPrimaryNavigationRoute
+    ? navigationItems.find((item) => location.pathname.startsWith(item.path))?.value ?? ""
+    : "";
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-50">
@@ -43,56 +107,16 @@ export function AppShell() {
             </NavLink>
 
             {/* Navegacion principal */}
-            <nav className="flex items-center gap-2 justify-self-center sm:gap-3">
-              {/* Boton para publicar, oculto para usuarios persona */}
-              {!isPersona && (
-                <NavLink
-                  to={isAuthenticated ? "/post-subproduct" : "/login"}
-                  className={({ isActive }) =>
-                    `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                      isActive
-                        ? "bg-[#23ce6b] text-white shadow-sm"
-                        : "bg-[#dff4ed] text-[#18322d] hover:bg-[#cdeee3]"
-                    }`
-                  }
-                >
-                  <span className="text-base font-extrabold">+</span>
-                  <span>Publicar</span>
-                </NavLink>
-              )}
-
-              {/* Enlace al catalogo */}
-              <NavLink
-                to="/catalog"
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                    isActive
-                      ? "bg-[#23ce6b] text-white shadow-sm"
-                      : "bg-[#dff4ed] text-[#18322d] hover:bg-[#cdeee3]"
-                  }`
-                }
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-                <span>Catalogo</span>
-              </NavLink>
-
-              {/* Enlace al matching */}
-              <NavLink
-                to="/matching"
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                    isActive
-                      ? "bg-[#23ce6b] text-white shadow-sm"
-                      : "bg-[#dff4ed] text-[#18322d] hover:bg-[#cdeee3]"
-                  }`
-                }
-              >
-                <span className="text-base font-extrabold">↔</span>
-                <span>Matching</span>
-              </NavLink>
+            <nav className="flex items-center justify-self-center">
+              <RubberSegment
+                items={navigationItems}
+                value={activeNavigationValue}
+                onChange={(value) => {
+                  const item = navigationItems.find((entry) => entry.value === value);
+                  if (item) navigate(item.path);
+                }}
+                ariaLabel="Navegación principal"
+              />
             </nav>
 
             {/* Notificaciones y avatar del usuario */}
@@ -117,19 +141,7 @@ export function AppShell() {
                 title={isAuthenticated ? "Mi cuenta / Perfil" : "Iniciar sesión"}
                 aria-label="Perfil de usuario"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#18322d"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
+                <img src={userIcon} width="24" height="24" aria-hidden="true" alt="" />
               </Link>
             </div>
           </div>

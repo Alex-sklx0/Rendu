@@ -1,24 +1,25 @@
 // Pantalla de presentacion 3
 
 import { Link, useNavigate } from "react-router-dom";
-import certificateImg from "@/img/certificate.png";
+import inlineSvg31 from "@/img/arrow-white.svg";
+import certificateImg from "@/img/certificate.svg";
 
 export default function Splash3Page() {
   const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef2f0] px-4 py-8">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-8 shadow-lg sm:p-12">
+      <div className="relative w-full max-w-4xl rounded-3xl bg-white p-12 shadow-xl sm:p-16">
         {/* Decoracion verde de la esquina */}
-        <div className="pointer-events-none absolute bottom-6 right-6 h-14 w-28 rounded-br-xl border-b-4 border-r-4 border-[#23ce6b]" />
+        <div className="pointer-events-none absolute bottom-6 right-6 h-14 w-28 rounded-br-2xl border-b-4 border-r-4 border-[#23ce6b]" />
 
         <div className="relative z-10 flex flex-col items-center gap-8 md:flex-row md:items-center">
           {/* Texto de presentacion */}
-          <div className="flex-1 space-y-4">
-            <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
+          <div className="flex-1 space-y-9">
+            <h1 className="mt-4 text-2xl font-extrabold text-ink-900 sm:text-4xl">
               Certificate y sientete seguro con nosotros
             </h1>
-            <p className="text-sm leading-relaxed text-ink-500 sm:text-base">
+            <p className="pr-12 text-sm leading-relaxed text-ink-700 sm:text-[17px]">
               Genera certificados por tus ventas o compras concretadas y sientete seguro
               de apoyar nuestra economia circular...
             </p>
@@ -29,16 +30,16 @@ export default function Splash3Page() {
             <img
               src={certificateImg}
               alt="Certificación y seguridad"
-              className="max-h-40 max-w-40 object-contain"
+              className="max-h-60 max-w-60 object-contain"
             />
           </div>
         </div>
 
         {/* Navegacion inferior */}
-        <div className="mt-10 flex items-center justify-between pt-6">
+        <div className="mt-12 flex items-center justify-between">
           <Link
             to="/splash2"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-ink-800"
+            className="flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-semibold text-ink-400 duration-300 hover:bg-[#c6d1cb]"
           >
             ← Anterior
           </Link>
@@ -54,13 +55,10 @@ export default function Splash3Page() {
           <button
             type="button"
             onClick={() => navigate("/catalog")}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#23ce6b] px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1fb85f]"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#23ce6b] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:bg-[#167a3f]"
           >
             Siguiente
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            <img src={inlineSvg31} width={"16"} height={"16"} alt="" />
           </button>
         </div>
       </div>
