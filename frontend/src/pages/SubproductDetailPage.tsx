@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "motion/react";
 import { getPublicacion } from "@/api/client";
 import type { SubproductoDetalle } from "@/types";
 
@@ -11,6 +12,7 @@ export default function SubproductDetailPage() {
   const [subproducto, setSubproducto] = useState<SubproductoDetalle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
   const [contactado, setContactado] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,17 @@ export default function SubproductDetailPage() {
     loadItem();
   }, [id]);
 
+  useEffect(() => {
+    if (!contactModalOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setContactModalOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [contactModalOpen]);
+
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -45,7 +58,7 @@ export default function SubproductDetailPage() {
   if (error || !subproducto) {
     return (
       <div className="mx-auto max-w-xl py-12 text-center">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8">
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-8">
           <span className="text-4xl">⚠️</span>
           <h2 className="mt-3 text-lg font-bold text-red-900">
             {error || "Material no encontrado"}
@@ -68,38 +81,42 @@ export default function SubproductDetailPage() {
 
   const isDisponible = subproducto.disponible !== false;
 
+  const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  let currentUser: { id_empresa?: string | number } | null = null;
+  if (storedUser) {
+    try {
+      currentUser = JSON.parse(storedUser);
+    } catch {
+      // Ignorar error de parseo
+    }
+  }
+  const isOwner = Boolean(
+    currentUser?.id_empresa &&
+    subproducto.id_empresa &&
+    Number(currentUser.id_empresa) === Number(subproducto.id_empresa)
+  );
+
   return (
-    <div className="mx-auto max-w-5xl pb-16">
+    <div className="mx-auto mt-8 max-w-5xl pb-16">
       {/* Boton para volver al catalogo */}
       <div className="mb-6">
-        <button
+        <motion.button
           type="button"
-              onClick={() => navigate("/catalog")}
-          className="inline-flex items-center gap-2 text-sm font-bold text-forest-700 transition-colors hover:text-forest-900"
+          onClick={() => navigate("/catalog")}
+          whileHover={{ x: -12 }}
+          whileTap={{ x: -3 }}
+          transition={{ type: "spring", stiffness: 340, damping: 26, mass: 0.7 }}
+          className="relative -left-3 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-lg font-bold text-forest-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest-600/40"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Volver al catálogo
-        </button>
+          ← Volver al catálogo
+        </motion.button>
       </div>
 
       {/* Distribucion de la pagina en dos columnas */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Columna izquierda con la foto */}
         <div className="lg:col-span-5">
-          <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-2xl bg-[#cce9df] shadow-sm lg:h-96">
+          <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-3xl bg-[#cce9df] shadow-sm lg:h-96">
             {!isDisponible && (
               <div className="absolute top-3 right-3 z-10">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-600 px-3 py-1.5 text-xs font-extrabold tracking-wide text-white shadow-lg">
@@ -120,70 +137,54 @@ export default function SubproductDetailPage() {
               </div>
             )}
           </div>
-
-          {/* Datos rapidos del material */}
-          <div className="mt-4 rounded-xl border border-surface-200 bg-white p-4 text-xs text-ink-500 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span>Estado:</span>
-              <span className={`font-bold ${isDisponible ? "text-forest-700" : "text-amber-700 font-extrabold"}`}>
-                {isDisponible ? "● Disponible para retiro" : "Sin stock / No disponible"}
-              </span>
-            </div>
-            {subproducto.frecuencia && (
-              <div className="mt-2 flex items-center justify-between border-t border-surface-100 pt-2">
-                <span>Frecuencia de generación:</span>
-                <span className="font-semibold text-ink-800">{subproducto.frecuencia}</span>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Columna derecha con detalles y contacto */}
         <div className="lg:col-span-7">
-          <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">            
+          <div className="rounded-3xl border border-surface-200 bg-white p-6 shadow-sm sm:p-8">            
 
             {/* Categoria del material */}
             <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-1 text-xs font-bold text-forest-700">
-                {subproducto.familia}
+              <span className="inline-flex items-center rounded-full bg-[#DFF4ED] px-3.5 py-2 text-sm font-bold text-forest-700">
+                Categoría: {subproducto.familia}
               </span>
             </div>
 
             {/* Nombre del material */}
-            <h1 className="text-2xl font-extrabold text-ink-900 sm:text-3xl">
+            <h1 className="mt-10 text-3xl font-extrabold text-ink-900 sm:text-4xl">
               {subproducto.nombre}
             </h1>
 
             {/* Empresa que publica el material */}
-            <p className="mt-1 text-sm font-medium text-ink-500">
-              Publicación de <span className="font-semibold text-ink-800">{subproducto.usuario || subproducto.empresa}</span>
+            <p className="mt-6 54ea93 font-medium text-ink-700">
+              Publicación de <span className="font-bold text-forest-800 ">{subproducto.empresa}</span>
             </p>
 
             {/* Datos de cantidad disponible y ubicacion */}
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-[#f6f8f7] p-4 border border-surface-200">
-                <span className="block text-xl font-extrabold text-ink-900">
-                  {subproducto.volumen_disponible.toLocaleString("es-CO")} {subproducto.unidad_volumen}
-                </span>
-                <span className="text-xs font-medium text-ink-500">
+            <div className="mt-10 grid grid-cols-2 gap-4">
+              <div className="rounded-2xl bg-[#f6f8f7] p-4 border border-surface-200">
+                <span className="text-xs font-medium text-ink-700">
                   {isDisponible ? "Cantidad disponible" : "Lote habitual"}
+                </span>
+                <span className="block text-xl font-extrabold text-forest-800">
+                  {subproducto.volumen_disponible.toLocaleString("es-CO")} {subproducto.unidad_volumen}
                 </span>
               </div>
 
-              <div className="rounded-xl bg-[#f6f8f7] p-4 border border-surface-200">
-                <span className="block text-xl font-extrabold text-ink-900">
+              <div className="rounded-2xl bg-[#f6f8f7] p-4 border border-surface-200">
+                <span className="text-xs font-medium text-ink-700">Ubicación</span>
+                <span className="block text-xl font-extrabold text-forest-800">
                   {subproducto.municipio}
                 </span>
-                <span className="text-xs font-medium text-ink-500">Ubicación</span>
               </div>
             </div>
 
             {/* Seccion de descripcion */}
             <div className="mt-6 border-t border-surface-100 pt-6">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-ink-700">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-ink-900">
                 Descripción
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink-600">
+              <p className="mt-2 text-sm leading-relaxed text-ink-900">
                 {subproducto.descripcion}
               </p>
             </div>
@@ -191,41 +192,86 @@ export default function SubproductDetailPage() {
           
             {/* Boton para contactar a la empresa */}
             <div className="mt-8 border-t border-surface-100 pt-6">
-              {contactado ? (
-                <div className="rounded-xl bg-[#dff4ed] p-4 text-center text-sm font-semibold text-forest-800">
-                  ✅ Solicitud enviada a {subproducto.empresa}. Te contactarán a la brevedad.
-                </div>
+              {isOwner ? (
+                <div className=""></div>
               ) : (
                 <button
                   type="button"
-                  disabled={!isDisponible}
-                  onClick={() => setContactado(true)}
-                  className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold text-white shadow-sm transition-all active:scale-[0.99] ${
-                    isDisponible
-                      ? "bg-[#23ce6b] "
-                      : "bg-amber-600 "
+                  disabled={!isDisponible || contactado}
+                  onClick={() => {
+                    setContactado(true);
+                    setContactModalOpen(true);
+                  }}
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold text-white shadow-sm transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 ${
+                    contactado
+                      ? "bg-forest-700"
+                      : isDisponible
+                      ? "bg-[#23ce6b] hover:bg-[#1fb85f]"
+                      : "bg-amber-600"
                   }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                  {isDisponible ? "Contactar empresa" : "No se puede contactar (sin stock)"}
+                  {contactado
+                    ? "Solicitud enviada"
+                    : isDisponible
+                      ? "Contactar empresa"
+                      : "No se puede contactar (sin stock)"}
                 </button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {contactModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 px-4"
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setContactModalOpen(false);
+            }}
+          >
+            <motion.div
+              className="w-full max-w-md rounded-3xl border border-surface-200 bg-white p-6 text-center shadow-xl sm:p-8"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="contact-modal-title"
+              initial={{ opacity: 0, scale: 0.82, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 12 }}
+              transition={{
+                type: "spring",
+                stiffness: 420,
+                damping: 22,
+                mass: 0.8,
+              }}
+            >
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#dff4ed] text-2xl">
+                ✅
+              </div>
+              <h2 id="contact-modal-title" className="mt-4 text-xl font-extrabold text-ink-900">
+                Solicitud enviada
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-700">
+                Tu solicitud fue enviada a{" "}
+                <span className="font-bold text-forest-800">{subproducto.empresa}</span>.
+                Te contactarán a la brevedad.
+              </p>
+              <button
+                type="button"
+                onClick={() => setContactModalOpen(false)}
+                className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#23ce6b] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1fb85f]"
+              >
+                Entendido
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
