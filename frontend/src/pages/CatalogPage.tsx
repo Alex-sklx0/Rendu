@@ -57,7 +57,7 @@ export default function CatalogPage() {
 
       {/* barra de busqueda */}
       <div className="mb-6 flex flex-col gap-8 sm:flex-row ">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-ink-700">
             <img src={inlineSvg7} width={"20"} height={"20"} alt="" />
           </div>
@@ -72,6 +72,7 @@ export default function CatalogPage() {
 
         {/* filtro de municipios */}
         <Select
+          className="w-full sm:w-72 sm:flex-shrink-0"
           value={activeMunicipio}
           onChange={(e) => setActiveMunicipio(e.target.value)}
         >
