@@ -1,9 +1,7 @@
-// Servicio para personas naturales — registro y validaciones
-
 import { supabase } from '../config/supabaseClient.js';
 
 const MUNICIPIOS_VALIDOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Valle de Aburrá
-const ROLES_VALIDOS_PERSONA = [2, 3]; // 2=TRANSFORMADOR, 3=RECICLADOR
+const ROLES_VALIDOS_PERSONA = [2, 3]; // 2=TRANSFORMADOR, 3=RECICLADOR (ck_personas_rol en la BD)
 
 export async function registrarPersona({ nombre, cedula, id_municipio, id_rol, id_usuario }) {
   // Verificar que el usuario exista
@@ -25,7 +23,7 @@ export async function registrarPersona({ nombre, cedula, id_municipio, id_rol, i
     throw err;
   }
 
-  // Verificar que la cédula no esté ya registrada
+  // Verificar que la cédula no esté ya registrada (uq_personas_cedula en la BD)
   const { data: cedulaExiste, error: errorCedula } = await supabase
     .from('personas')
     .select('id')
@@ -39,11 +37,12 @@ export async function registrarPersona({ nombre, cedula, id_municipio, id_rol, i
   }
 
   if (cedulaExiste) {
-    const err = new Error('Ya existe una persona registrada con esa cédula. Usa otro número o inicia sesión.');
+    const err = new Error('Ya existe una persona registrada con esa cédula');
     err.status = 409;
     throw err;
   }
 
+  // Insertar la persona
   const { data: nuevaPersona, error: errorInsercion } = await supabase
     .from('personas')
     .insert([{ nombre, cedula, id_municipio, id_rol, id_usuario }])

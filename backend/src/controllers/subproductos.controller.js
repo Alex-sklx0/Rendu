@@ -1,5 +1,3 @@
-// Controlador para la gestion de subproductos
-
 import {
   registrarSubproducto,
   obtenerSubproductoPorId,
@@ -10,12 +8,11 @@ import {
   MUNICIPIOS_VALIDOS,
 } from '../services/subproductos.service.js';
 import { uploadImageToStorage, deleteStorageFile } from '../services/storage.service.js';
+import { resolverIdEmpresa } from '../middlewares/auth.js';
 
-// Crear nuevo subproducto (nace en BORRADOR)
 export async function postRegistrarSubproducto(req, res, next) {
   try {
     const {
-      id_empresa,
       nombre,
       id_familia_material,
       volumen_disponible,
@@ -23,11 +20,11 @@ export async function postRegistrarSubproducto(req, res, next) {
       descripcion,
       id_municipio,
       direccion,
-      image_base64,
-      publicar,
+      image_base64, // opcional: imagen en Base64/Data URI (HU-08)
     } = req.body;
+    // Con token, la empresa sale del token; sin token, del body (modo compatible)
+    const id_empresa = resolverIdEmpresa(req, req.body.id_empresa);
 
-    // Validacion de campos requeridos
     if (
       !id_empresa ||
       !nombre ||
@@ -44,7 +41,7 @@ export async function postRegistrarSubproducto(req, res, next) {
       });
     }
 
-    // Validacion de volumen
+    // ck_subproductos_volumen exige > 0, no solo >= 0
     if (Number(volumen_disponible) <= 0) {
       return res.status(400).json({
         ok: false,
@@ -52,7 +49,6 @@ export async function postRegistrarSubproducto(req, res, next) {
       });
     }
 
-    // Validacion de municipio del Valle de Aburrá
     if (!MUNICIPIOS_VALIDOS.includes(Number(id_municipio))) {
       return res.status(400).json({
         ok: false,
@@ -60,13 +56,10 @@ export async function postRegistrarSubproducto(req, res, next) {
       });
     }
 
-    // Subida de imagen opcional
     let foto_url = null;
     if (image_base64) {
       foto_url = await uploadImageToStorage(image_base64, 'subproductos');
     }
-
-    const esPublicado = Boolean(publicar);
 
     const subproducto = await registrarSubproducto({
       id_empresa: Number(id_empresa),
@@ -78,14 +71,11 @@ export async function postRegistrarSubproducto(req, res, next) {
       id_municipio: Number(id_municipio),
       direccion,
       foto_url,
-      publicar: esPublicado,
     });
 
     return res.status(201).json({
       ok: true,
-      mensaje: esPublicado
-        ? 'Subproducto publicado exitosamente'
-        : 'Subproducto guardado como borrador exitosamente',
+      mensaje: 'Subproducto registrado exitosamente (en borrador — publícalo cuando esté listo)',
       subproducto,
     });
   } catch (error) {
@@ -93,7 +83,6 @@ export async function postRegistrarSubproducto(req, res, next) {
   }
 }
 
-// Obtener un subproducto por ID
 export async function getSubproducto(req, res, next) {
   try {
     const { id } = req.params;
@@ -104,10 +93,9 @@ export async function getSubproducto(req, res, next) {
   }
 }
 
-// Listar publicaciones propias (incluye borradores)
 export async function getMisPublicaciones(req, res, next) {
   try {
-    const { id_empresa } = req.query;
+    const id_empresa = resolverIdEmpresa(req, req.query.id_empresa);
     if (!id_empresa || !/^\d+$/.test(String(id_empresa))) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio como query param' });
     }
@@ -118,18 +106,16 @@ export async function getMisPublicaciones(req, res, next) {
   }
 }
 
-// Actualizar datos de un subproducto
 export async function patchSubproducto(req, res, next) {
   try {
     const { id } = req.params;
-    const { id_empresa, volumen_disponible, image_base64, ...resto } = req.body;
+    const { id_empresa: _ignorado, volumen_disponible, image_base64, ...resto } = req.body;
+    const id_empresa = resolverIdEmpresa(req, req.body.id_empresa);
 
-    // Validacion de empresa
     if (!id_empresa) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para editar un subproducto.' });
     }
 
-    // Validacion de volumen
     if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
       return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero' });
     }
@@ -137,7 +123,7 @@ export async function patchSubproducto(req, res, next) {
     const cambios = { ...resto };
     if (volumen_disponible !== undefined) cambios.volumen_disponible = Number(volumen_disponible);
 
-    // Si mandan una imagen nueva, subir y reemplazar la anterior
+    // Si mandan una imagen nueva, subirla y reemplazar la anterior
     if (image_base64) {
       const actual = await obtenerSubproductoPorId(Number(id));
       cambios.foto_url = await uploadImageToStorage(image_base64, 'subproductos', actual.foto_url);
@@ -150,11 +136,10 @@ export async function patchSubproducto(req, res, next) {
   }
 }
 
-// Eliminar un subproducto y su imagen
 export async function deleteSubproducto(req, res, next) {
   try {
     const { id } = req.params;
-    const { id_empresa } = req.query;
+    const id_empresa = resolverIdEmpresa(req, req.query.id_empresa);
 
     if (!id_empresa) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para eliminar un subproducto.' });
@@ -171,11 +156,12 @@ export async function deleteSubproducto(req, res, next) {
   }
 }
 
-// Publicar o pasar a borrador un subproducto (HU-07)
+// HU-07: publicar / despublicar
 export async function patchPublicarSubproducto(req, res, next) {
   try {
     const { id } = req.params;
-    const { id_empresa, publicar } = req.body;
+    const { publicar } = req.body;
+    const id_empresa = resolverIdEmpresa(req, req.body.id_empresa);
 
     if (!id_empresa) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio.' });
@@ -195,7 +181,7 @@ export async function patchPublicarSubproducto(req, res, next) {
   }
 }
 
-// Subida de imagen independiente (por si el front sube la foto antes de crear el subproducto)
+// HU-08: endpoint de carga de imagen independiente (por si el front sube la foto antes de crear el subproducto)
 export async function postSubirImagen(req, res, next) {
   try {
     const { image_base64 } = req.body;

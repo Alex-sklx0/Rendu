@@ -1,15 +1,51 @@
-// Estructura principal de la app con encabezado y contenido
-
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import catalogIcon from "@/img/catalog.svg";
 import userIcon from "@/img/user-black.svg";
 import notifyImg from "@/img/notify.svg";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { RubberSegment } from "@/components/ui/RubberSegment";
+import { getMe, getToken } from "@/api/client";
 
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    if (typeof window === "undefined") return null;
+    const str = localStorage.getItem("user");
+    try {
+      return str ? JSON.parse(str) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Restaurar sesion real al cargar o recargar
+  useEffect(() => {
+    if (getToken()) {
+      getMe()
+        .then((res) => {
+          if (res?.usuario) {
+            const updated = {
+              id: res.usuario.id,
+              email: res.usuario.email,
+              nombre:
+                res.usuario.nombre ||
+                res.empresa?.nombre ||
+                res.persona?.nombre ||
+                res.usuario.email.split("@")[0],
+              id_empresa: res.usuario.id_empresa ?? res.empresa?.id ?? null,
+              tipo: res.tipo,
+              municipio: res.empresa?.municipio || res.persona?.municipio,
+            };
+            setCurrentUser(updated);
+          }
+        })
+        .catch(() => {
+          setCurrentUser(null);
+        });
+    }
+  }, [location.pathname]);
 
   const knownRoutePrefixes = [
     "/splash",
@@ -18,6 +54,7 @@ export function AppShell() {
     "/person-registration",
     "/company-registration",
     "/communication",
+    "/communication-method",
     "/catalog",
     "/profile",
     "/subproduct",
@@ -42,21 +79,13 @@ export function AppShell() {
     "/person-registration",
     "/company-registration",
     "/communication",
+    "/communication-method",
   ].some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
-  const isAuthenticated = typeof window !== "undefined" && Boolean(localStorage.getItem("isAuthenticated"));
+  const isAuthenticated = typeof window !== "undefined" && Boolean(getToken());
   const isCatalogNavigationActive =
     location.pathname === "/catalog" || location.pathname.startsWith("/catalog/");
-  const storedUserStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-  let isPersona = false;
-  if (storedUserStr) {
-    try {
-      const parsed = JSON.parse(storedUserStr);
-      if (!parsed?.id_empresa) isPersona = true;
-    } catch {
-      // Ignorar error de JSON parse
-    }
-  }
+  const isPersona = Boolean(currentUser && !currentUser.id_empresa);
   const navigationItems = [
     ...(!isPersona
       ? [{

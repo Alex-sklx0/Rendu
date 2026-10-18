@@ -1,8 +1,15 @@
-// Controlador del catálogo público
-
 import { buscarCatalogo, parsearIds, limpiarBusqueda } from '../services/catalogo.service.js';
+import { anotarPublicaciones } from '../services/sesion.service.js';
 
-// GET /api/catalogo — subproductos publicados y disponibles con filtros opcionales
+/**
+ * GET /api/catalogo — HU-13, HU-14, HU-15
+ * Query params (todos opcionales y combinables):
+ *   q          texto libre (nombre o descripción)
+ *   familias   ids de familia separados por coma, ej. 1,2   (alias: familia, id_familia_material)
+ *   municipio  ids de municipio separados por coma, ej. 3   (alias: municipios, id_municipio)
+ * Solo devuelve subproductos PUBLICADOS y disponibles.
+ * Con token, cada item incluye ya_manifeste_interes y es_mia.
+ */
 export async function getCatalogo(req, res, next) {
   try {
     const { q, familias, familia, id_familia_material, municipio, municipios, id_municipio } = req.query;
@@ -13,7 +20,8 @@ export async function getCatalogo(req, res, next) {
       municipios: parsearIds(municipio ?? municipios ?? id_municipio, 'municipio'),
     };
 
-    const subproductos = await buscarCatalogo(filtros);
+    const encontrados = await buscarCatalogo(filtros);
+    const subproductos = await anotarPublicaciones(encontrados, req.usuario);
 
     return res.status(200).json({
       ok: true,
@@ -28,6 +36,3 @@ export async function getCatalogo(req, res, next) {
     next(error);
   }
 }
-
-// Alias para retrocompatibilidad
-export const listarCatalogo = getCatalogo;

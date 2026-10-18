@@ -1,12 +1,12 @@
-// Controlador para registro de personas naturales y recicladores
-
 import { registrarPersona, MUNICIPIOS_VALIDOS, ROLES_VALIDOS_PERSONA } from '../services/personas.service.js';
+import { resolverIdUsuario } from '../middlewares/auth.js';
 
 export async function postRegistrarPersona(req, res, next) {
   try {
-    const { nombre, cedula, id_municipio, id_rol, id_usuario } = req.body;
+    const { nombre, cedula, id_municipio, id_rol } = req.body;
+    // Con token, el usuario sale del token; sin token, del body (modo compatible)
+    const id_usuario = resolverIdUsuario(req, req.body.id_usuario);
 
-    // Validacion de campos requeridos
     if (!nombre || !cedula || !id_municipio || !id_rol || !id_usuario) {
       return res.status(400).json({
         ok: false,
@@ -14,7 +14,6 @@ export async function postRegistrarPersona(req, res, next) {
       });
     }
 
-    // Validacion de municipio
     if (!MUNICIPIOS_VALIDOS.includes(Number(id_municipio))) {
       return res.status(400).json({
         ok: false,
@@ -22,7 +21,6 @@ export async function postRegistrarPersona(req, res, next) {
       });
     }
 
-    // Validacion de rol de persona
     if (!ROLES_VALIDOS_PERSONA.includes(Number(id_rol))) {
       return res.status(400).json({
         ok: false,

@@ -20,8 +20,8 @@ export default function Splash1Page() {
               Conecta tus subproductos a través de Rendu
             </h1>
             <p className="text-sm leading-relaxed text-ink-700 sm:text-[17px] pr-12">
-              Esta plataforma te ayudará a encontrar nuevas relaciones con empresas y personas
-              cercanas para que tus subproductos encuentren un nuevo valor...
+              Somos una plataforma que te ayudará a crear nuevas relaciones con empresas y personas
+              cercanas, para que tus subproductos encuentren un nuevo valor...
             </p>
           </div>
 

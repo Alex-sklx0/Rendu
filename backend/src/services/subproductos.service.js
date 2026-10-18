@@ -1,10 +1,8 @@
-// Servicio para subproductos — lógica de BD separada del controller
-
 import { supabase } from '../config/supabaseClient.js';
 
 const MUNICIPIOS_VALIDOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Valle de Aburrá
 
-// estados_publicacion en Supabase: 1=BORRADOR, 2=PUBLICADO
+// estados_publicacion confirmado en Supabase: 1=BORRADOR, 2=PUBLICADO
 const ESTADO_BORRADOR = 1;
 const ESTADO_PUBLICADO = 2;
 
@@ -21,7 +19,6 @@ export async function registrarSubproducto({
   id_municipio,
   direccion,
   foto_url,
-  publicar = false,
 }) {
   // Verificar que la empresa exista
   const { data: empresaExiste, error: errorEmpresa } = await supabase
@@ -35,8 +32,8 @@ export async function registrarSubproducto({
     throw err;
   }
   if (!empresaExiste) {
-    const err = new Error('Las personas naturales / recicladores no pueden publicar subproductos. Esta función está reservada para empresas.');
-    err.status = 403;
+    const err = new Error('La empresa indicada no existe');
+    err.status = 404;
     throw err;
   }
 
@@ -74,7 +71,7 @@ export async function registrarSubproducto({
     throw err;
   }
 
-  // Insertar el subproducto — nace en BORRADOR; se publica con un endpoint aparte
+  // Insertar el subproducto — nace en BORRADOR (HU-07); se publica con un endpoint aparte.
   const { data: nuevoSubproducto, error: errorInsercion } = await supabase
     .from('subproductos')
     .insert([
@@ -88,7 +85,7 @@ export async function registrarSubproducto({
         id_municipio,
         direccion: direccion || null,
         foto_url: foto_url || null,
-        id_estado_publicacion: publicar ? ESTADO_PUBLICADO : ESTADO_BORRADOR,
+        id_estado_publicacion: ESTADO_BORRADOR,
         fecha_registro: new Date().toISOString(),
       },
     ])
@@ -96,6 +93,7 @@ export async function registrarSubproducto({
     .single();
 
   if (errorInsercion) {
+    // ck_subproductos_volumen: volumen_disponible debe ser > 0
     if (errorInsercion.code === '23514') {
       const err = new Error('El volumen disponible debe ser mayor que cero');
       err.status = 400;
@@ -129,7 +127,6 @@ export async function obtenerSubproductoPorId(id) {
   return data;
 }
 
-// Listar todos los subproductos de una empresa (incluye borradores)
 export async function listarMisPublicaciones(id_empresa) {
   const { data, error } = await supabase
     .from('subproductos')
@@ -145,7 +142,14 @@ export async function listarMisPublicaciones(id_empresa) {
   return data;
 }
 
-// Verifica que el subproducto exista y pertenezca a id_empresa
+/**
+ * Verifica que el subproducto exista y pertenezca a id_empresa.
+ * Lanza 404 si no existe, 403 si existe pero es de otra empresa.
+ *
+ * Con token (Authorization: Bearer), el controller ya fuerza id_empresa desde
+ * la sesión (resolverIdEmpresa). Sin token se confía en el id_empresa que manda
+ * el frontend (modo compatible).
+ */
 async function verificarPropietario(id, id_empresa) {
   const { data, error } = await supabase
     .from('subproductos')
@@ -203,6 +207,14 @@ export async function eliminarSubproducto(id, id_empresa) {
 
   const { data: producto } = await supabase.from('subproductos').select('foto_url').eq('id', id).maybeSingle();
 
+  // manifestaciones_interes tiene FK a subproductos: hay que borrar los intereses primero
+  const { error: errorInteres } = await supabase.from('manifestaciones_interes').delete().eq('id_publicacion', id);
+  if (errorInteres) {
+    const err = new Error('Error al eliminar los intereses de la publicación: ' + errorInteres.message);
+    err.status = 500;
+    throw err;
+  }
+
   const { error } = await supabase.from('subproductos').delete().eq('id', id);
   if (error) {
     const err = new Error('Error al eliminar el subproducto: ' + error.message);
@@ -213,7 +225,10 @@ export async function eliminarSubproducto(id, id_empresa) {
   return { foto_url: producto?.foto_url || null };
 }
 
-// Publicar o pasar a borrador un subproducto (HU-07)
+/**
+ * HU-07: publicar o despublicar un subproducto.
+ * @param {boolean} publicar - true = PUBLICADO, false = BORRADOR
+ */
 export async function cambiarEstadoPublicacion(id, id_empresa, publicar) {
   await verificarPropietario(id, id_empresa);
 

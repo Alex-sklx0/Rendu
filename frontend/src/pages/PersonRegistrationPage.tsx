@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { registrarUsuario, registrarPersona } from "@/api/client";
+import { registrarUsuario, registrarPersona, getMe } from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 import { Select } from "@/components/ui/Select";
 
@@ -45,31 +45,22 @@ export default function PersonRegistrationPage() {
     try {
       const nombreFinal = nombre.trim() || email.split("@")[0];
       
-      // 1. Registrar cuenta de usuario
-      const user = await registrarUsuario({ email, password });
+      // 1. Registrar cuenta de usuario -> guarda token en localStorage
+      await registrarUsuario({ email, password });
 
-      // 2. Registrar perfil de persona natural
+      // 2. Registrar perfil de persona natural (sin id_usuario, backend lo saca del token)
       await registrarPersona({
-        id_usuario: user.id,
         nombre: nombreFinal,
         cedula: cedula.trim(),
         id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
         id_rol: tipoActividad === "Reciclador" ? 3 : 2,
       });
 
-      // Guardar sesion localmente
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({
-        id: user.id,
-        email: user.email,
-        nombre: nombreFinal,
-        id_empresa: null,
-        tipo: tipoActividad,
-        municipio,
-      }));
+      // 3. Refrescar sesion completa
+      await getMe();
 
-      // Redirigir al usuario
-      navigate("/communication");
+      // Redirigir a persona directamente al catálogo
+      navigate("/catalog");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar la persona.");
     } finally {

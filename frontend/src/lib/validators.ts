@@ -94,7 +94,7 @@ export const subproductoSchema = z.object({
   id_familia: z.string().min(1, "Selecciona una familia de material."),
   volumen_disponible: z.coerce
     .number({ invalid_type_error: "Ingresa un valor numérico." })
-    .positive("El volumen debe ser mayor a cero."),
+    .nonnegative("El volumen no puede ser negativo."),
   unidad_volumen: z.string().min(1, "Selecciona una unidad."),
   municipio: z.string().min(1, "Selecciona un municipio."),
 });

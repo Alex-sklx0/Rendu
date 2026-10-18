@@ -8,15 +8,20 @@ import {
   patchPublicarSubproducto,
   postSubirImagen,
 } from '../controllers/subproductos.controller.js';
+import { autenticarOpcional } from '../middlewares/auth.js';
 
 const router = Router();
 
-router.post('/', postRegistrarSubproducto);           // registrar (nace en borrador)
-router.post('/upload', postSubirImagen);              // subir imagen suelta
-router.get('/mis-publicaciones', getMisPublicaciones); // listar propias (incluye borradores)
-router.get('/:id', getSubproducto);                   // detalle (para el dueño)
-router.patch('/:id', patchSubproducto);               // editar
-router.patch('/:id/publicar', patchPublicarSubproducto); // publicar o pasar a borrador
-router.delete('/:id', deleteSubproducto);             // eliminar
+router.use(autenticarOpcional);
+
+router.post('/', postRegistrarSubproducto); // HU-03 a HU-06: registrar
+router.post('/upload', postSubirImagen); // HU-08: subir imagen suelta
+
+router.get('/mis-publicaciones', getMisPublicaciones); // HU-07/HU-09: listar publicaciones propias
+router.get('/:id', getSubproducto); // HU-10: detalle
+
+router.patch('/:id', patchSubproducto); // HU-11: editar (valida dueño)
+router.patch('/:id/publicar', patchPublicarSubproducto); // HU-07: publicar/despublicar (valida dueño)
+router.delete('/:id', deleteSubproducto); // eliminar (valida dueño)
 
 export default router;

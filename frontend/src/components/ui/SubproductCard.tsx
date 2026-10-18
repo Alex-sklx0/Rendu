@@ -2,6 +2,7 @@
 
 import { Link } from "react-router-dom";
 import type { SubproductoCatalogo } from "@/types";
+import location from "@/img/location.svg";
 
 interface SubproductCardProps {
   subproducto: SubproductoCatalogo;
@@ -45,11 +46,12 @@ export function SubproductCard({ subproducto }: SubproductCardProps) {
       <div className="flex flex-1 flex-col p-5">
         {/* Categoria y estado */}
         <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="inline-flex items-center rounded-full bg-[#dff4ed] px-3 py-2 text-[13px] font-bold text-forest-800">
+          <span className="inline-flex items-center rounded-full bg-info-600 px-3 py-2 text-[13px] font-bold text-black">
             {subproducto.familia}
           </span>
-          <span className="inline-flex items-center rounded-md bg-surface-100 px-3 py-2 font-bold text-forest-800 shrink-0 rounded-xl text-xs">
-            ⮟ {subproducto.municipio}
+          <span className="inline-flex items-center rounded-md bg-info-500 px-2 py-2 font-bold text-white shrink-0 rounded-xl text-xs">
+            <img src={location} alt="Ubicación" className="h-4 w-4 mx-1" />
+            {subproducto.municipio}
           </span>
         </div>
 

@@ -23,9 +23,9 @@ export const MUNICIPIOS_VALLE_ABURRA: string[] = [
   "Envigado",
   "Sabaneta",
   "Copacabana",
-  "Barbosa",
-  "Caldas",
   "La Estrella",
+  "Caldas",
+  "Barbosa",
   "Girardota",
 ];
 
@@ -48,4 +48,17 @@ export const TIPOS_ACTOR: { value: TipoActor; label: string }[] = [
   { value: "empresa_transformadora", label: "Empresa transformadora" },
   { value: "eca", label: "Estación de Clasificación y Aprovechamiento (ECA)" },
   { value: "reciclador", label: "Reciclador" },
+];
+
+export const ROLES_USUARIO = [
+  { id: 1, codigo: "GENERADOR", nombre: "Empresa Generadora" },
+  { id: 2, codigo: "TRANSFORMADOR", nombre: "Empresa Transformadora" },
+  { id: 3, codigo: "RECICLADOR", nombre: "Reciclador" },
+];
+
+export const MEDIOS_CONTACTO = [
+  { id: 1, codigo: "WHATSAPP", nombre: "WhatsApp", icon: "whatsapp" },
+  { id: 2, codigo: "CORREO", nombre: "Correo", icon: "email" },
+  { id: 3, codigo: "TELEFONO", nombre: "Teléfono", icon: "phone" },
+  { id: 4, codigo: "INSTAGRAM", nombre: "Instagram", icon: "instagram" },
 ];

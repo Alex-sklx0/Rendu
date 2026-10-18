@@ -1,11 +1,17 @@
-// Servicio para empresas — registro y validaciones
-
 import { supabase } from '../config/supabaseClient.js';
 
 const MUNICIPIOS_VALIDOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Valle de Aburrá
-const ROLES_VALIDOS_EMPRESA = [1, 2]; // 1=GENERADOR, 2=TRANSFORMADOR
+const ROLES_VALIDOS_EMPRESA = [1, 2]; // 1=GENERADOR, 2=TRANSFORMADOR (ck_empresas_rol en la BD)
 
-export async function registrarEmpresa({ nombre, nit, id_municipio, id_rol, id_usuario }) {
+export async function registrarEmpresa({
+  nombre,
+  nit,
+  id_municipio,
+  id_rol,
+  id_usuario,
+  contacto = null,
+  id_medio_contacto = null,
+}) {
   // Verificar que el usuario exista
   const { data: usuarioExiste, error: errorUsuario } = await supabase
     .from('usuarios')
@@ -25,12 +31,31 @@ export async function registrarEmpresa({ nombre, nit, id_municipio, id_rol, id_u
     throw err;
   }
 
-  // Verificar que el NIT no esté ya registrado
-  const nitNormalizado = String(nit).trim().replace(/[.\s]/g, '');
+  // Verificar que el medio de contacto exista (si se envió)
+  if (id_medio_contacto !== null) {
+    const { data: medioExiste, error: errorMedio } = await supabase
+      .from('medios_contacto')
+      .select('id')
+      .eq('id', id_medio_contacto)
+      .maybeSingle();
+
+    if (errorMedio) {
+      const err = new Error('Error al verificar el medio de contacto');
+      err.status = 500;
+      throw err;
+    }
+    if (!medioExiste) {
+      const err = new Error('El medio de contacto indicado no existe');
+      err.status = 404;
+      throw err;
+    }
+  }
+
+  // Verificar que el NIT no esté ya registrado (uq_empresas_nit en la BD)
   const { data: nitExiste, error: errorNit } = await supabase
     .from('empresas')
     .select('id')
-    .eq('nit', nitNormalizado)
+    .eq('nit', nit)
     .maybeSingle();
 
   if (errorNit) {
@@ -45,10 +70,11 @@ export async function registrarEmpresa({ nombre, nit, id_municipio, id_rol, id_u
     throw err;
   }
 
+  // Insertar la empresa
   const { data: nuevaEmpresa, error: errorInsercion } = await supabase
     .from('empresas')
-    .insert([{ nombre, nit: nitNormalizado, id_municipio, id_rol, id_usuario }])
-    .select('id, nombre, nit, id_municipio, id_rol, id_usuario')
+    .insert([{ nombre, nit, id_municipio, id_rol, id_usuario, contacto, id_medio_contacto }])
+    .select('id, nombre, nit, id_municipio, id_rol, id_usuario, contacto, id_medio_contacto')
     .single();
 
   if (errorInsercion) {
@@ -58,6 +84,22 @@ export async function registrarEmpresa({ nombre, nit, id_municipio, id_rol, id_u
   }
 
   return nuevaEmpresa;
+}
+
+export async function actualizarContactoEmpresa(id_empresa, { contacto, id_medio_contacto }) {
+  const { data, error } = await supabase
+    .from('empresas')
+    .update({ contacto, id_medio_contacto })
+    .eq('id', id_empresa)
+    .select('id, nombre, nit, id_municipio, id_rol, id_usuario, contacto, id_medio_contacto')
+    .single();
+
+  if (error) {
+    const err = new Error('Error al actualizar el contacto: ' + error.message);
+    err.status = 500;
+    throw err;
+  }
+  return data;
 }
 
 export { MUNICIPIOS_VALIDOS, ROLES_VALIDOS_EMPRESA };

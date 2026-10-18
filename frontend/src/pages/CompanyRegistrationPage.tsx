@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { registrarEmpresa, registrarUsuario } from "@/api/client";
+import { registrarEmpresa, registrarUsuario, getMe } from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 import { Select } from "@/components/ui/Select";
 
@@ -47,31 +47,22 @@ export default function CompanyRegistrationPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      // 1. Crear el usuario en el sistema
-      const user = await registrarUsuario({ email, password });
+      // 1. Crear el usuario en el sistema -> guarda token en localStorage
+      await registrarUsuario({ email, password });
       
-      // 2. Registrar los datos de la empresa vinculada
-      const empresa = await registrarEmpresa({
-        id_usuario: user.id,
+      // 2. Registrar los datos de la empresa (sin id_usuario, backend lo saca del token)
+      await registrarEmpresa({
         nombre: nombreEmpresa,
         nit,
         id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
         id_rol: tipoEmpresa === "Generador" ? 1 : 2,
       });
 
-      // Guardar datos de sesion localmente
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({
-        id: user.id,
-        email: user.email,
-        nombre: empresa.nombre || nombreEmpresa,
-        id_empresa: empresa.id,
-        tipo: tipoEmpresa,
-        municipio,
-      }));
+      // 3. Refrescar sesion completa en el estado global
+      await getMe();
 
-      // Redirigir al modulo de comunicacion o catalogo
-      navigate("/communication");
+      // Redirigir a la selección de medio de contacto para empresas
+      navigate("/communication-method");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar la empresa.");
     } finally {
@@ -106,7 +97,6 @@ export default function CompanyRegistrationPage() {
             {error}
           </div>
         )}
-Faltan 
         {/* Formulario de registro */}
         <form onSubmit={handleSubmit} className="space-y-5">
           

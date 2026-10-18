@@ -1,17 +1,23 @@
 import { Router } from 'express';
-import usuariosRouter from './usuarios.routes.js';
-import empresasRouter from './empresas.routes.js';
-import personasRouter from './personas.routes.js';
-import subproductosRouter from './subproductos.routes.js';
-import catalogoRouter from './catalogo.routes.js';
-import publicacionesRouter from './publicaciones.routes.js';
+import usuariosRoutes from './usuarios.routes.js';
+import empresasRoutes from './empresas.routes.js';
+import personasRoutes from './personas.routes.js';
+import subproductosRoutes from './subproductos.routes.js';
+import catalogoRoutes from './catalogo.routes.js';
+import publicacionesRoutes from './publicaciones.routes.js';
+import interesRoutes from './interes.routes.js';
+import misPublicacionesRoutes from './mis-publicaciones.routes.js';
+import mediosContactoRoutes from './mediosContacto.routes.js';
 
 // Router central — montado bajo /api en app.js
 export const router = Router();
 
-router.use('/usuarios', usuariosRouter);
-router.use('/empresas', empresasRouter);
-router.use('/personas', personasRouter);
-router.use('/subproductos', subproductosRouter);
-router.use('/catalogo', catalogoRouter);
-router.use('/publicaciones', publicacionesRouter);
+router.use('/usuarios', usuariosRoutes);
+router.use('/empresas', empresasRoutes);
+router.use('/personas', personasRoutes);
+router.use('/subproductos', subproductosRoutes);
+router.use('/catalogo', catalogoRoutes);
+router.use('/publicaciones', publicacionesRoutes);
+router.use('/interes', interesRoutes);
+router.use('/mis-publicaciones', misPublicacionesRoutes);
+router.use('/medios-contacto', mediosContactoRoutes);

@@ -1,11 +1,9 @@
-// Servicio para manejo de imagenes en Supabase Storage
-
 import crypto from 'node:crypto';
 import { supabase } from '../config/supabaseClient.js';
 
 const BUCKET = 'Imagenes';
 
-// Tipos de imagen permitidos
+// Tipos de imagen permitidos → extensión del archivo
 const TIPOS_PERMITIDOS = {
   'image/jpeg': 'jpg',
   'image/jpg': 'jpg',
@@ -14,7 +12,10 @@ const TIPOS_PERMITIDOS = {
   'image/gif': 'gif',
 };
 
-// Extrae la ruta relativa dentro del bucket desde su URL publica
+/**
+ * Extrae la ruta relativa dentro del bucket (ej. "subproductos/uuid.jpg")
+ * a partir de una URL pública de Supabase Storage.
+ */
 function extractStoragePath(url) {
   if (!url || typeof url !== 'string') return null;
   const marker = `/${BUCKET}/`;
@@ -24,7 +25,11 @@ function extractStoragePath(url) {
   return decodeURIComponent(parts[1].split('?')[0]);
 }
 
-// Elimina un archivo del Storage — nunca lanza error, solo lo registra
+/**
+ * Elimina un archivo de Supabase Storage a partir de su URL pública.
+ * No lanza error si falla — solo lo registra (borrar la imagen vieja
+ * nunca debe tumbar la operación principal, como actualizar el subproducto).
+ */
 export async function deleteStorageFile(url) {
   const path = extractStoragePath(url);
   if (!path) return;
@@ -35,11 +40,19 @@ export async function deleteStorageFile(url) {
   }
 }
 
-// Sube una imagen en Base64 o Data URI al Storage y devuelve su URL publica
+/**
+ * HU-08: sube una imagen (Data URI o Base64 puro) a Supabase Storage y
+ * devuelve su URL pública.
+ *
+ * @param {string} imageInput - "data:image/png;base64,...." o Base64 puro (se asume JPEG)
+ * @param {string} [folder='subproductos'] - Carpeta dentro del bucket
+ * @param {string|null} [existingUrl=null] - URL de la imagen anterior; se borra tras subir la nueva
+ * @returns {Promise<string|null>} URL pública, o null si no se envió imagen
+ */
 export async function uploadImageToStorage(imageInput, folder = 'subproductos', existingUrl = null) {
   if (!imageInput || typeof imageInput !== 'string') return null;
 
-  // Si ya es URL publica, se devuelve tal cual (el front reenvía la misma imagen sin cambios)
+  // Si ya es una URL pública (el front reenvía la actual sin cambios), se conserva.
   if (/^https?:\/\//i.test(imageInput)) return imageInput;
 
   let mimeType = 'image/jpeg';
@@ -56,7 +69,6 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
     base64 = match[2];
   }
 
-  // Verificar tipo de imagen
   const ext = TIPOS_PERMITIDOS[mimeType];
   if (!ext) {
     const err = new Error('Tipo de imagen no permitido. Usa JPG, PNG, WEBP o GIF');
@@ -73,7 +85,6 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
 
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
 
-  // Subir imagen nueva
   const { error: errorSubida } = await supabase.storage
     .from(BUCKET)
     .upload(path, buffer, { contentType: mimeType, upsert: false });
@@ -92,7 +103,7 @@ export async function uploadImageToStorage(imageInput, folder = 'subproductos', 
     throw err;
   }
 
-  // Borrar imagen anterior solo si la nueva ya quedó guardada
+  // La imagen nueva ya está guardada: recién ahora se borra la anterior.
   if (existingUrl) await deleteStorageFile(existingUrl);
 
   return publicUrl;

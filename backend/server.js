@@ -1,14 +1,7 @@
-try {
-  if (typeof process.loadEnvFile === 'function') {
-    process.loadEnvFile();
-  } else {
-    await import('dotenv/config');
-  }
-} catch {
-  // Ignorar si no existe archivo .env o las variables vienen inyectadas por Docker
-}
-
+import dotenv from 'dotenv';
 import app from './src/app.js';
+
+dotenv.config();
 
 const PORT = process.env.PORT || 8000;
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import inlineSvg7 from "@/img/search-black.svg";
-import { getCatalogo } from "@/api/client";
+import { getCatalogoDetallado } from "@/api/client";
 import type { SubproductoCatalogo } from "@/types";
 import { SubproductCard } from "@/components/ui/SubproductCard";
 import { FAMILIAS_MATERIAL, MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 
 export default function CatalogPage() {
   const [subproductos, setSubproductos] = useState<SubproductoCatalogo[]>([]);
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,13 +21,17 @@ export default function CatalogPage() {
     async function fetchCatalogo() {
       setLoading(true);
       setError(null);
+      setEmptyMessage(null);
       try {
-        const data = await getCatalogo({
+        const res = await getCatalogoDetallado({
           query: searchQuery,
           id_familia: activeFamilias.length > 0 ? activeFamilias.join(",") : undefined,
           municipio: activeMunicipio !== "todos" ? activeMunicipio : undefined,
         });
-        setSubproductos(data);
+        setSubproductos(res.subproductos);
+        if (res.total === 0 && res.mensaje) {
+          setEmptyMessage(res.mensaje);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar catálogo.");
       } finally {
@@ -136,7 +141,7 @@ export default function CatalogPage() {
             🔍
           </div>
           <h3 className="mt-4 text-lg font-bold text-ink-900">
-            No se encontraron materiales
+            {emptyMessage || "No se encontraron materiales"}
           </h3>
           <button
             type="button"

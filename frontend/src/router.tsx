@@ -14,6 +14,7 @@ import LoginPage from "@/pages/LoginPage";
 import PreRegisterPage from "@/pages/PreRegisterPage";
 import PersonRegistrationPage from "@/pages/PersonRegistrationPage";
 import CompanyRegistrationPage from "@/pages/CompanyRegistrationPage";
+import CommunicationMethodPage from "@/pages/CommunicationMethodPage";
 import CommunicationPage from "@/pages/CommunicationPage";
 import MatchingPage from "@/pages/MatchingPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
       { path: "pre-register", element: <PreRegisterPage /> },
       { path: "person-registration", element: <PersonRegistrationPage /> },
       { path: "company-registration", element: <CompanyRegistrationPage /> },
+      { path: "communication-method", element: <CommunicationMethodPage /> },
       { path: "communication", element: <CommunicationPage /> },
 
       // Rutas principales de la plataforma

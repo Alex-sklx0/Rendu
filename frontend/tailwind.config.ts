@@ -34,6 +34,10 @@ export default {
           error: "#ce4223",
           success: "#3E7A45",
         },
+        info:{
+          500: "#3b82f6",
+          600: "#c5d9f3",
+        },
       },
       fontFamily: {
         sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],

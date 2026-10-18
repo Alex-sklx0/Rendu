@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Previsualización de paleta</title>
+  <style>
+    :root {
+      --verde: #23ce6b;
+      --verde-hover: #1ba957;
+      --verde-activo: #158544;
+      --verde-claro: #e9faf0;
+
+      --naranja: #f26419;
+      --naranja-hover: #d65512;
+      --naranja-claro: #fdece3;
+
+      --fondo: #f8fafc;
+      --blanco: #ffffff;
+      --borde: #e2e8f0;
+      --texto-deshabilitado: #94a3b8;
+      --texto-secundario: #475569;
+      --grafito: #0f172a;
+
+      --ambar: #f59e0b;
+      --ambar-claro: #fef3c7;
+      --ambar-texto: #92400e;
+
+      --rojo: #ef4444;
+      --rojo-claro: #fee2e2;
+      --rojo-texto: #b91c1c;
+
+      --azul: #3b82f6;
+      --azul-claro: #dbeafe;
+      --azul-texto: #1e40af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px;
+      background: var(--fondo);
+      color: var(--grafito);
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1, h2, p {
+      margin-top: 0;
+    }
+
+    .paleta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .muestra {
+      overflow: hidden;
+      background: var(--blanco);
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+    }
+
+    .color {
+      min-height: 100px;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
+
+    .detalle {
+      padding: 12px;
+    }
+
+    .detalle strong,
+    .detalle code {
+      display: block;
+    }
+
+    .detalle code {
+      margin-top: 5px;
+      color: var(--texto-secundario);
+    }
+
+    .demo {
+      padding: 24px;
+      background: var(--blanco);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px #0f172a0a;
+    }
+
+    .botones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+
+    button {
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-verde {
+      background: var(--verde);
+      color: var(--grafito);
+    }
+
+    .btn-verde:hover {
+      background: var(--verde-hover);
+    }
+
+    .btn-naranja {
+      background: var(--naranja);
+      color: var(--blanco);
+    }
+
+    .btn-naranja:hover {
+      background: var(--naranja-hover);
+    }
+
+    .etiqueta {
+      display: inline-block;
+      padding: 6px 10px;
+      margin: 4px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .success { background: var(--verde-claro); color: var(--verde-activo); }
+    .warning { background: var(--ambar-claro); color: var(--ambar-texto); }
+    .error   { background: var(--rojo-claro); color: var(--rojo-texto); }
+    .info    { background: var(--azul-claro); color: var(--azul-texto); }
+
+    .texto-secundario {
+      color: var(--texto-secundario);
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Paleta de colores</h1>
+    <p class="texto-secundario">Muestras de color con su nombre y código hexadecimal.</p>
+
+    <section class="paleta" aria-label="Muestras de colores">
+      <article class="muestra"><div class="color" style="background:#23ce6b;color:#0f172a">Verde principal</div><div class="detalle"><strong>Verde principal</strong><code>#23ce6b</code></div></article>
+      <article class="muestra"><div class="color" style="background:#1ba957;color:white">Verde hover</div><div class="detalle"><strong>Verde hover</strong><code>#1ba957</code></div></article>
+      <article class="muestra"><div class="color" style="background:#158544;color:white">Verde activo</div><div class="detalle"><strong>Verde activo</strong><code>#158544</code></div></article>
+      <article class="muestra"><div class="color" style="background:#e9faf0;color:#0f172a">Verde claro</div><div class="detalle"><strong>Verde claro</strong><code>#e9faf0</code></div></article>
+
+      <article class="muestra"><div class="color" style="background:#f26419;color:white">Naranja industrial</div><div class="detalle"><strong>Naranja industrial</strong><code>#f26419</code></div></article>
+      <article class="muestra"><div class="color" style="background:#d65512;color:white">Naranja hover</div><div class="detalle"><strong>Naranja hover</strong><code>#d65512</code></div></article>
+      <article class="muestra"><div class="color" style="background:#fdece3;color:#0f172a">Naranja claro</div><div class="detalle"><strong>Naranja claro</strong><code>#fdece3</code></div></article>
+
+      <article class="muestra"><div class="color" style="background:#f8fafc;color:#0f172a">Fondo de aplicación</div><div class="detalle"><strong>Fondo de aplicación</strong><code>#f8fafc</code></div></article>
+      <article class="muestra"><div class="color" style="background:#ffffff;color:#0f172a;border-bottom:1px solid #e2e8f0">Blanco</div><div class="detalle"><strong>Blanco</strong><code>#ffffff</code></div></article>
+      <article class="muestra"><div class="color" style="background:#e2e8f0;color:#0f172a">Borde y divisores</div><div class="detalle"><strong>Borde y divisores</strong><code>#e2e8f0</code></div></article>
+      <article class="muestra"><div class="color" style="background:#94a3b8;color:#0f172a">Texto deshabilitado</div><div class="detalle"><strong>Texto deshabilitado / placeholder</strong><code>#94a3b8</code></div></article>
+      <article class="muestra"><div class="color" style="background:#475569;color:white">Texto secundario</div><div class="detalle"><strong>Texto secundario</strong><code>#475569</code></div></article>
+      <article class="muestra"><div class="color" style="background:#0f172a;color:white">Grafito oscuro</div><div class="detalle"><strong>Grafito oscuro</strong><code>#0f172a</code></div></article>
+
+      <article class="muestra"><div class="color" style="background:#f59e0b;color:#0f172a">Ámbar de advertencia</div><div class="detalle"><strong>Ámbar de advertencia</strong><code>#f59e0b</code></div></article>
+      <article class="muestra"><div class="color" style="background:#fef3c7;color:#0f172a">Fondo de advertencia</div><div class="detalle"><strong>Fondo de advertencia</strong><code>#fef3c7</code></div></article>
+      <article class="muestra"><div class="color" style="background:#92400e;color:white">Texto de advertencia</div><div class="detalle"><strong>Texto de advertencia</strong><code>#92400e</code></div></article>
+
+      <article class="muestra"><div class="color" style="background:#ef4444;color:white">Rojo de error</div><div class="detalle"><strong>Rojo de error</strong><code>#ef4444</code></div></article>
+      <article class="muestra"><div class="color" style="background:#fee2e2;color:#0f172a">Fondo de error</div><div class="detalle"><strong>Fondo de error</strong><code>#fee2e2</code></div></article>
+      <article class="muestra"><div class="color" style="background:#b91c1c;color:white">Texto de error</div><div class="detalle"><strong>Texto de error</strong><code>#b91c1c</code></div></article>
+
+      <article class="muestra"><div class="color" style="background:#3b82f6;color:white">Azul informativo</div><div class="detalle"><strong>Azul informativo</strong><code>#3b82f6</code></div></article>
+      <article class="muestra"><div class="color" style="background:#dbeafe;color:#0f172a">Fondo informativo</div><div class="detalle"><strong>Fondo informativo</strong><code>#dbeafe</code></div></article>
+      <article class="muestra"><div class="color" style="background:#1e40af;color:white">Texto informativo</div><div class="detalle"><strong>Texto informativo</strong><code>#1e40af</code></div></article>
+    </section>
+
+    <section class="demo">
+      <h2>Vista previa de interfaz</h2>
+      <p class="texto-secundario">Ejemplo de botones y mensajes de estado.</p>
+
+      <div class="botones">
+        <button class="btn-verde">Contactar vendedor</button>
+        <button class="btn-naranja">Ver oferta destacada</button>
+      </div>
+
+      <span class="etiqueta success">Disponible</span>
+      <span class="etiqueta warning">Stock bajo</span>
+      <span class="etiqueta error">Pago rechazado</span>
+      <span class="etiqueta info">Nueva funcionalidad</span>
+    </section>
+  </main>
+</body>
+</html>

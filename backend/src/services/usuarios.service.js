@@ -1,12 +1,10 @@
-// Servicio para usuarios — registro, login y eliminacion
-
 import bcrypt from 'bcryptjs';
 import { supabase } from '../config/supabaseClient.js';
 
 const SALT_ROUNDS = 10;
 
 export async function registrarUsuario({ email, password }) {
-  // Verificar que el email no exista ya
+  // 1. Verificar que el email no exista ya
   const { data: existente, error: errorBusqueda } = await supabase
     .from('usuarios')
     .select('id')
@@ -25,8 +23,10 @@ export async function registrarUsuario({ email, password }) {
     throw err;
   }
 
+  // 2. Hashear la contraseña
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
+  // 3. Insertar el nuevo usuario
   const { data: nuevoUsuario, error: errorInsercion } = await supabase
     .from('usuarios')
     .insert([
@@ -36,7 +36,7 @@ export async function registrarUsuario({ email, password }) {
         fecha_registro: new Date().toISOString(),
       },
     ])
-    .select('id, email, fecha_registro')
+    .select('id, email, fecha_registro') // nunca devolvemos el password_hash
     .single();
 
   if (errorInsercion) {
@@ -75,7 +75,7 @@ export async function loginUsuario({ email, password }) {
     throw err;
   }
 
-  // Buscar perfil vinculado (empresa o persona)
+  // Buscar si el usuario tiene perfil de empresa o de persona, para devolverlo al front
   const [{ data: empresa }, { data: persona }] = await Promise.all([
     supabase.from('empresas').select('id, nombre, id_municipio, id_rol').eq('id_usuario', user.id).maybeSingle(),
     supabase.from('personas').select('id, nombre, id_municipio, id_rol').eq('id_usuario', user.id).maybeSingle(),
@@ -95,12 +95,21 @@ export async function loginUsuario({ email, password }) {
 }
 
 export async function eliminarUsuario(id) {
-  // Borrado en cascada manual (no hay ON DELETE CASCADE en el esquema)
+  // Borra en cascada manual: manifestaciones, subproductos de la empresa del usuario, la empresa, la persona, y el usuario.
+  // NOTA: no hay ON DELETE CASCADE en el esquema, así que el orden importa (FKs).
   const { data: empresa } = await supabase.from('empresas').select('id').eq('id_usuario', id).maybeSingle();
   if (empresa) {
+    const { data: subs } = await supabase.from('subproductos').select('id').eq('id_empresa', empresa.id);
+    const idsSubs = (subs ?? []).map((s) => s.id);
+    if (idsSubs.length) {
+      // intereses que otros usuarios manifestaron en las publicaciones de esta empresa
+      await supabase.from('manifestaciones_interes').delete().in('id_publicacion', idsSubs);
+    }
     await supabase.from('subproductos').delete().eq('id_empresa', empresa.id);
     await supabase.from('empresas').delete().eq('id', empresa.id);
   }
+  // intereses que este usuario manifestó en publicaciones de otros
+  await supabase.from('manifestaciones_interes').delete().eq('id_usuario', id);
   await supabase.from('personas').delete().eq('id_usuario', id);
 
   const { error } = await supabase.from('usuarios').delete().eq('id', id);
