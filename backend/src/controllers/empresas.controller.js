@@ -1,5 +1,5 @@
 import { registrarEmpresa, actualizarContactoEmpresa, MUNICIPIOS_VALIDOS, ROLES_VALIDOS_EMPRESA } from '../services/empresas.service.js';
-import { resolverIdUsuario } from '../middlewares/auth.js';
+import { resolverIdUsuario, resolverIdEmpresa } from '../middlewares/auth.js';
 
 export async function postRegistrarEmpresa(req, res, next) {
   try {

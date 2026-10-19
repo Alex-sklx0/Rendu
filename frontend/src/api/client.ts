@@ -392,10 +392,10 @@ export async function getMediosContacto(): Promise<MedioContacto[]> {
     // Si el backend no tiene ruta de medios, usar las constantes locales oficiales
   }
   return [
-    { id: 1, nombre: "WhatsApp", descripcion: "Número celular o enlace directo de chat" },
-    { id: 2, nombre: "Correo", descripcion: "Dirección de correo corporativo para solicitudes" },
-    { id: 3, nombre: "Teléfono", descripcion: "Número de teléfono fijo o móvil corporativo" },
-    { id: 4, nombre: "Instagram", descripcion: "Perfil de empresa (@usuario) o enlace directo" },
+    { id: 1, nombre: "WhatsApp"},
+    { id: 2, nombre: "Correo"},
+    { id: 3, nombre: "Teléfono"},
+    { id: 4, nombre: "Instagram"},
   ];
 }
 

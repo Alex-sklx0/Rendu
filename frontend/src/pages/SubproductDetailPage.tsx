@@ -17,6 +17,14 @@ export default function SubproductDetailPage() {
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [isSubmittingInteres, setIsSubmittingInteres] = useState(false);
   const [contactoInfo, setContactoInfo] = useState<ContactoInfo | null>(null);
+  const [haContactado, setHaContactado] = useState(false);
+
+  useEffect(() => {
+    if (subproducto?.id) {
+      const guardado = localStorage.getItem(`contactado_subproducto_${subproducto.id}`) === "true";
+      setHaContactado(guardado);
+    }
+  }, [subproducto?.id]);
 
   useEffect(() => {
     async function loadItem() {
@@ -108,14 +116,25 @@ export default function SubproductDetailPage() {
       Number(currentUser.id_empresa) === Number(subproducto.id_empresa))
   );
 
-  const yaManifeste = Boolean(subproducto.ya_manifeste_interes);
 
-  // Manejador para manifestar interés (HU-17)
-  async function handleManifestarInteres() {
+  function handleConfirmarContacto() {
+    setHaContactado(true);
+    if (subproducto?.id) {
+      localStorage.setItem(`contactado_subproducto_${subproducto.id}`, "true");
+    }
+  }
+
+  // Manejador para abrir modal y consultar contacto (HU-17, HU-19)
+  async function handleAbrirModalContacto() {
     if (!subproducto) return;
 
     if (!getToken()) {
       navigate("/login", { state: { returnTo: `/catalog/${subproducto.id}` } });
+      return;
+    }
+
+    if (contactoInfo) {
+      setContactModalOpen(true);
       return;
     }
 
@@ -150,19 +169,6 @@ export default function SubproductDetailPage() {
           ← Volver al catálogo
         </motion.button>
       </div>
-
-      {/* Alerta si el material ya no está disponible */}
-      {!isDisponible && (
-        <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
-          <div>
-            <h3 className="font-bold">Esta publicación ya no está disponible</h3>
-            <p className="text-sm text-amber-800">
-              El material se encuentra agotado o sin disponibilidad en este momento.
-            </p>
-          </div>
-        </div>
-      )}
 
       {actionError && (
         <div className="mb-6 rounded-2xl border border-red-300 bg-red-50 p-4 text-sm font-semibold text-red-800">
@@ -269,28 +275,32 @@ export default function SubproductDetailPage() {
                 >
                   No disponible para contacto (sin stock)
                 </button>
-              ) : yaManifeste ? (
+              ) : haContactado ? (
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 flex items-center justify-center rounded-2xl bg-[#dff4ed] border border-[#23ce6b]/40 px-4 py-3 text-[15px] font-bold text-forest-900">
                      Ya manifestaste interés, espera a que la empresa responda.
                   </div>
-                  {/*  <button
+                  <button
                     type="button"
-                    onClick={handleAbrirContacto}
+                    onClick={handleAbrirModalContacto}
                     disabled={isSubmittingInteres}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-3.5 text-base font-bold text-white shadow-sm hover:bg-[#1fb85f] transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-[#23ce6b] bg-white px-5 py-3 text-sm font-bold text-forest-800 shadow-sm hover:bg-forest-50 transition-all cursor-pointer"
                   >
-                    {isSubmittingInteres ? "Cargando..." : "Contactar a la empresa"}
-                  </button> */}
+                    Ver contacto
+                  </button>
                 </div>
               ) : (
                 <button
                   type="button"
-                  onClick={handleManifestarInteres}
+                  onClick={handleAbrirModalContacto}
                   disabled={isSubmittingInteres}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-3.5 text-base font-bold text-white shadow-sm hover:bg-[#1fb85f] active:scale-[0.99] transition-all disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-6 py-3.5 text-base font-bold text-white shadow-sm hover:bg-[#1fb85f] active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
                 >
-                  {isSubmittingInteres ? "Enviando interés..." : "Me interesa"}
+                  {isSubmittingInteres
+                    ? "Cargando contacto..."
+                    : subproducto.ya_manifeste_interes
+                    ? "Contactar a la empresa"
+                    : "Me interesa"}
                 </button>
               )}
             </div>
@@ -362,22 +372,39 @@ export default function SubproductDetailPage() {
                       href={contactoInfo.link}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={handleConfirmarContacto}
                       className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-5 py-3 text-sm font-bold text-white shadow transition-all hover:bg-[#1fb85f]"
                     >
                       Abrir {contactoInfo.medio || "enlace directo"} ↗
                     </a>
                   </div>
                 ) : (
-                  <p className="mt-3 text-xs italic text-ink-600 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
-                    {contactoInfo?.mensaje || "La empresa no tiene un medio de contacto registrado o no se pudo armar el enlace directo."}
-                  </p>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <p className="text-xs italic text-ink-600 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
+                      {contactoInfo?.mensaje || "La empresa no tiene un medio de contacto registrado o no se pudo armar el enlace directo."}
+                    </p>
+                    {contactoInfo?.contacto && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator?.clipboard && contactoInfo.contacto) {
+                            navigator.clipboard.writeText(contactoInfo.contacto);
+                          }
+                          handleConfirmarContacto();
+                        }}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#23ce6b] px-5 py-3 text-sm font-bold text-white shadow transition-all hover:bg-[#1fb85f]"
+                      >
+                        Copiar contacto
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
               <button
                 type="button"
                 onClick={() => setContactModalOpen(false)}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-surface-300 bg-white px-5 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-surface-100"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-surface-300 bg-white px-5 py-2.5 text-lg font-semibold text-ink-700 transition-colors hover:bg-surface-100"
               >
                 Cerrar
               </button>

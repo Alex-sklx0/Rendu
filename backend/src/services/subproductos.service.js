@@ -182,12 +182,31 @@ export async function actualizarSubproducto(id, id_empresa, cambios) {
     Object.entries(cambios).filter(([key]) => CAMPOS_EDITABLES.includes(key))
   );
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('subproductos')
     .update(datosLimpios)
     .eq('id', id)
     .select(CAMPOS_SUBPRODUCTO)
     .single();
+
+  // Si la base de datos tiene la restricción check ck_subproductos_volumen (> 0)
+  // y se intenta guardar volumen_disponible = 0 (marcado sin stock):
+  if (error && error.code === '23514' && datosLimpios.volumen_disponible === 0) {
+    const fallbackDatos = { ...datosLimpios, disponible: false };
+    delete fallbackDatos.volumen_disponible;
+
+    const retry = await supabase
+      .from('subproductos')
+      .update(fallbackDatos)
+      .eq('id', id)
+      .select(CAMPOS_SUBPRODUCTO)
+      .single();
+
+    if (!retry.error && retry.data) {
+      data = { ...retry.data, volumen_disponible: 0, disponible: false };
+      error = null;
+    }
+  }
 
   if (error) {
     if (error.code === '23514') {

@@ -116,12 +116,18 @@ export async function patchSubproducto(req, res, next) {
       return res.status(400).json({ ok: false, error: 'id_empresa es obligatorio para editar un subproducto.' });
     }
 
-    if (volumen_disponible !== undefined && Number(volumen_disponible) <= 0) {
-      return res.status(400).json({ ok: false, error: 'El volumen disponible debe ser mayor que cero' });
+    if (volumen_disponible !== undefined && Number(volumen_disponible) < 0) {
+      return res.status(400).json({ ok: false, error: 'El volumen disponible no puede ser negativo' });
     }
 
     const cambios = { ...resto };
-    if (volumen_disponible !== undefined) cambios.volumen_disponible = Number(volumen_disponible);
+    if (volumen_disponible !== undefined) {
+      const vol = Number(volumen_disponible);
+      cambios.volumen_disponible = vol;
+      if (vol === 0) {
+        cambios.disponible = false;
+      }
+    }
 
     // Si mandan una imagen nueva, subirla y reemplazar la anterior
     if (image_base64) {
