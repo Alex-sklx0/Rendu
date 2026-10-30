@@ -72,20 +72,24 @@ export default function UpdateSubproductPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const storedUser = localStorage.getItem("user");
-      const companyId = storedUser ? JSON.parse(storedUser).id_empresa : null;
-      if (!companyId) throw new Error("No se encontró la empresa propietaria.");
       if (!item) throw new Error("No se encontró el subproducto.");
       const wasPublished = item.id_estado_publicacion === 2;
-      await actualizarSubproducto(id, companyId, {
-        ...form,
+      const unidad = UNIDADES_VOLUMEN.find((u) => u.value === form.unidad_volumen);
+      const isNewImage = imageUrl && imageUrl.startsWith("data:image/");
+
+      await actualizarSubproducto(id, {
+        nombre: form.nombre,
+        descripcion: form.descripcion,
         volumen_disponible: Number(form.volumen_disponible),
-        image_url: imageUrl,
         disponible: form.disponible,
+        id_familia_material: item.id_familia ? Number(item.id_familia) : undefined,
+        id_unidad_medida: unidad ? unidad.id : undefined,
+        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(form.municipio) + 1,
+        ...(isNewImage ? { image_base64: imageUrl } : {}),
       });
       const shouldPublish = selectedMode === "borrador" ? false : true;
       if (shouldPublish !== wasPublished) {
-        await cambiarEstadoPublicacion(id, companyId, shouldPublish);
+        await cambiarEstadoPublicacion(id, shouldPublish);
       }
       setMessage("Cambios guardados correctamente.");
       setTimeout(() => {

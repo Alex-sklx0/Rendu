@@ -2,11 +2,10 @@ import crypto from 'node:crypto';
 import { supabase } from '../config/supabaseClient.js';
 
 const BUCKET = 'Imagenes';
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 
-// Tipos de imagen permitidos → extensión del archivo
-const TIPOS_PERMITIDOS = {
+const EXTENSIONES = {
   'image/jpeg': 'jpg',
-  'image/jpg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/gif': 'gif',
@@ -40,11 +39,34 @@ export async function deleteStorageFile(url) {
   }
 }
 
+/** Detecta el tipo real mirando los primeros bytes del archivo (no lo que declara el cliente). */
+function detectarTipo(buf) {
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return 'image/png';
+  }
+  if (buf.length >= 6 && ['GIF87a', 'GIF89a'].includes(buf.subarray(0, 6).toString('ascii'))) return 'image/gif';
+  if (
+    buf.length >= 12 &&
+    buf.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buf.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return null;
+}
+
+function errorImagen(mensaje) {
+  const err = new Error(mensaje);
+  err.status = 400;
+  return err;
+}
+
 /**
- * HU-08: sube una imagen (Data URI o Base64 puro) a Supabase Storage y
- * devuelve su URL pública.
+ * HU-08: sube una imagen (Data URI o Base64 puro) a Supabase Storage y devuelve su URL pública.
+ * Valida tamaño máximo y tipo real. No acepta URLs externas: la imagen debe venir en Base64.
  *
- * @param {string} imageInput - "data:image/png;base64,...." o Base64 puro (se asume JPEG)
+ * @param {string} imageInput - "data:image/png;base64,...." o Base64 puro
  * @param {string} [folder='subproductos'] - Carpeta dentro del bucket
  * @param {string|null} [existingUrl=null] - URL de la imagen anterior; se borra tras subir la nueva
  * @returns {Promise<string|null>} URL pública, o null si no se envió imagen
@@ -52,38 +74,30 @@ export async function deleteStorageFile(url) {
 export async function uploadImageToStorage(imageInput, folder = 'subproductos', existingUrl = null) {
   if (!imageInput || typeof imageInput !== 'string') return null;
 
-  // Si ya es una URL pública (el front reenvía la actual sin cambios), se conserva.
-  if (/^https?:\/\//i.test(imageInput)) return imageInput;
+  if (/^https?:\/\//i.test(imageInput)) {
+    throw errorImagen('Envía la imagen en Base64, no una URL');
+  }
 
-  let mimeType = 'image/jpeg';
   let base64 = imageInput;
-
   if (imageInput.startsWith('data:')) {
     const match = imageInput.match(/^data:([\w/+.-]+);base64,(.+)$/s);
-    if (!match) {
-      const err = new Error('Formato de imagen inválido: se esperaba un Data URI en Base64');
-      err.status = 400;
-      throw err;
-    }
-    mimeType = match[1].toLowerCase();
+    if (!match) throw errorImagen('Formato de imagen inválido: se esperaba un Data URI en Base64');
     base64 = match[2];
   }
 
-  const ext = TIPOS_PERMITIDOS[mimeType];
-  if (!ext) {
-    const err = new Error('Tipo de imagen no permitido. Usa JPG, PNG, WEBP o GIF');
-    err.status = 400;
-    throw err;
+  // Tamaño estimado antes de decodificar
+  if (Math.floor((base64.length * 3) / 4) > MAX_BYTES) {
+    throw errorImagen('La imagen supera el tamaño máximo de 5 MB');
   }
 
   const buffer = Buffer.from(base64, 'base64');
-  if (buffer.length === 0) {
-    const err = new Error('La imagen está vacía o el Base64 es inválido');
-    err.status = 400;
-    throw err;
-  }
+  if (buffer.length === 0) throw errorImagen('La imagen está vacía o el Base64 es inválido');
+  if (buffer.length > MAX_BYTES) throw errorImagen('La imagen supera el tamaño máximo de 5 MB');
 
-  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const mimeType = detectarTipo(buffer);
+  if (!mimeType) throw errorImagen('Tipo de imagen no permitido. Usa JPG, PNG, WEBP o GIF');
+
+  const path = `${folder}/${crypto.randomUUID()}.${EXTENSIONES[mimeType]}`;
 
   const { error: errorSubida } = await supabase.storage
     .from(BUCKET)

@@ -37,6 +37,13 @@ export function parsearIds(valor, nombreParametro) {
   return [...new Set(partes.map(Number))];
 }
 
+/** Entero con valor por defecto; no numérico = 400, y se ajusta al rango [min, max]. */
+export function parsearEntero(valor, nombre, { defecto, min, max }) {
+  if (valor === undefined || valor === null || valor === '') return defecto;
+  if (!/^\d{1,9}$/.test(String(valor))) throw errorHttp(400, `El parámetro "${nombre}" debe ser un número entero`);
+  return Math.min(Math.max(Number(valor), min), max);
+}
+
 /**
  * Limpia el texto de búsqueda: quita caracteres que rompen el filtro .or() de
  * PostgREST (, ( ) " ') y los comodines de LIKE (% _ *), y limita el largo.
@@ -63,15 +70,40 @@ export function formatearPublicacion(fila) {
   };
 }
 
+/** Verifica si la empresa pertenece a un usuario suspendido */
+export async function empresaSuspendida(id_empresa) {
+  if (!id_empresa) return false;
+  const { data: empresa } = await supabase
+    .from('empresas')
+    .select('id_usuario, usuarios ( suspendido )')
+    .eq('id', id_empresa)
+    .maybeSingle();
+
+  return empresa?.usuarios?.suspendido === true;
+}
+
+/** IDs de empresas cuyos usuarios están suspendidos */
+export async function idsEmpresasSuspendidas() {
+  const { data: suspendidos } = await supabase.from('usuarios').select('id').eq('suspendido', true);
+  if (!suspendidos?.length) return [];
+  const idsUsuarios = suspendidos.map((u) => u.id);
+  const { data: empresas } = await supabase.from('empresas').select('id').in('id_usuario', idsUsuarios);
+  return (empresas ?? []).map((e) => e.id);
+}
+
 /**
- * HU-13/14/15: catálogo público. Solo PUBLICADO y disponible.
+ * HU-13/14/15: catálogo público con paginación. Solo PUBLICADO y disponible.
  * Filtros combinables (AND): texto, familias (varias), municipios.
  */
-export async function buscarCatalogo({ q, familias = [], municipios = [] }) {
+export async function buscarCatalogo({ q, familias = [], municipios = [], pagina = 1, limite = 50 }) {
   let query = supabase
     .from('subproductos')
-    .select(SELECT_PUBLICACION)
-    .eq('id_estado_publicacion', ESTADO_PUBLICADO);
+    .select(SELECT_PUBLICACION, { count: 'exact' })
+    .eq('id_estado_publicacion', ESTADO_PUBLICADO)
+    .eq('disponible', true);
+
+  const ocultas = await idsEmpresasSuspendidas();
+  if (ocultas.length) query = query.not('id_empresa', 'in', `(${ocultas.join(',')})`);
 
   if (q) {
     const patron = `%${q}%`;
@@ -80,9 +112,17 @@ export async function buscarCatalogo({ q, familias = [], municipios = [] }) {
   if (familias.length) query = query.in('id_familia_material', familias);
   if (municipios.length) query = query.in('id_municipio', municipios);
 
-  const { data, error } = await query.order('fecha_registro', { ascending: false });
+  const desde = (pagina - 1) * limite;
+  const { data, error, count } = await query
+    .order('fecha_registro', { ascending: false })
+    .order('id', { ascending: false })
+    .range(desde, desde + limite - 1);
+
+  // Página más allá del final: lista vacía en vez de error
+  if (error?.code === 'PGRST103') return { items: [], total: 0 };
   if (error) throw error;
-  return data.map(formatearPublicacion);
+
+  return { items: (data ?? []).map(formatearPublicacion), total: count ?? (data ?? []).length };
 }
 
 /**

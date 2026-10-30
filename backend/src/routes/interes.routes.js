@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { postInteres, getContacto } from '../controllers/interes.controller.js';
-import { autenticarOpcional } from '../middlewares/auth.js';
+import { autenticarOpcional, requerirAuth } from '../middlewares/auth.js';
 
 const router = Router();
 
-router.use(autenticarOpcional);
+router.use(autenticarOpcional, requerirAuth);
 
 // POST /api/interes          -> Manifestar interés, sin duplicados (HU-17)
 // GET  /api/interes/contacto -> Link de redirección al contacto (HU-19)

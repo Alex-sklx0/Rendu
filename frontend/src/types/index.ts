@@ -6,11 +6,12 @@ import type { UnidadVolumen } from "@/lib/constants";
 // actualiza ambos archivos en el mismo cambio.
 
 export type Usuario = {
-  id: string;
+  id: string | number;
   email: string;
   fecha_registro: string;
   nombre?: string;
   id_empresa?: string | number | null;
+  es_admin?: boolean;
 };
 
 export type Empresa = {
@@ -117,9 +118,11 @@ export type PerfilSesion = {
     fecha_registro: string;
     nombre: string;
     id_empresa: number | null;
+    avatar_url?: string | null;
+    es_admin?: boolean;
   };
   tipo: "EMPRESA" | "PERSONA" | null;
   empresa?: Empresa | null;
-  persona?: { id: number; nombre: string; id_municipio: number; id_rol: number; municipio?: string } | null;
+  persona?: { id: number; nombre: string; cedula?: string; id_municipio: number; id_rol: number; municipio?: string } | null;
 };
 

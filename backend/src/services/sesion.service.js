@@ -7,20 +7,20 @@ function errorHttp(status, mensaje) {
 }
 
 /**
- * Perfil completo de la sesión: usuario + empresa o persona (sin NIT ni cédula).
+ * Perfil completo de la sesión: usuario + empresa o persona.
  */
 export async function obtenerPerfil(id_usuario) {
   const [resUsuario, resEmpresa, resPersona] = await Promise.all([
     supabase.from('usuarios').select('id, email, fecha_registro').eq('id', id_usuario).maybeSingle(),
     supabase
       .from('empresas')
-      .select('id, nombre, id_municipio, id_rol, contacto, id_medio_contacto, municipios ( nombre ), medios_contacto ( nombre )')
+      .select('id, nombre, nit, id_municipio, id_rol, contacto, id_medio_contacto, municipios ( nombre ), medios_contacto ( nombre )')
       .eq('id_usuario', id_usuario)
       .limit(1)
       .maybeSingle(),
     supabase
       .from('personas')
-      .select('id, nombre, id_municipio, id_rol, municipios ( nombre )')
+      .select('id, nombre, cedula, id_municipio, id_rol, municipios ( nombre )')
       .eq('id_usuario', id_usuario)
       .limit(1)
       .maybeSingle(),
@@ -39,6 +39,7 @@ export async function obtenerPerfil(id_usuario) {
     ? {
         id: e.id,
         nombre: e.nombre,
+        nit: e.nit ?? null,
         id_municipio: e.id_municipio,
         municipio: e.municipios?.nombre ?? null,
         id_rol: e.id_rol,
@@ -52,6 +53,7 @@ export async function obtenerPerfil(id_usuario) {
     ? {
         id: p.id,
         nombre: p.nombre,
+        cedula: p.cedula ?? null,
         id_municipio: p.id_municipio,
         municipio: p.municipios?.nombre ?? null,
         id_rol: p.id_rol,

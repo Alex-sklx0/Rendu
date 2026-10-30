@@ -8,6 +8,7 @@ import publicacionesRoutes from './publicaciones.routes.js';
 import interesRoutes from './interes.routes.js';
 import misPublicacionesRoutes from './mis-publicaciones.routes.js';
 import mediosContactoRoutes from './mediosContacto.routes.js';
+import adminRoutes from './admin.routes.js';
 
 // Router central — montado bajo /api en app.js
 export const router = Router();
@@ -21,3 +22,4 @@ router.use('/publicaciones', publicacionesRoutes);
 router.use('/interes', interesRoutes);
 router.use('/mis-publicaciones', misPublicacionesRoutes);
 router.use('/medios-contacto', mediosContactoRoutes);
+router.use('/admin', adminRoutes);

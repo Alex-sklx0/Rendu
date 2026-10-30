@@ -1,6 +1,6 @@
 // Pagina para ingresar y validar el medio de contacto segun el canal seleccionado
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { actualizarContactoEmpresa } from "@/api/client";
 import { RenduLogo } from "@/components/ui/RenduLogo";
@@ -29,7 +29,38 @@ export default function CommunicationPage() {
   }, [navigationState?.id_medio]);
 
   const config = useMemo(() => resolveContactMethod(currentMethodName), [currentMethodName]);
-  const [handle, setHandle] = useState("");
+
+  const getUserEmail = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        return parsed.email || "";
+      }
+    } catch {
+      // ignorar
+    }
+    return "";
+  };
+
+  const isEmailMethod = useMemo(() => {
+    const norm = currentMethodName.toLowerCase().trim();
+    return config.id === "Correo" || norm.includes("correo") || norm.includes("email") || norm.includes("mail");
+  }, [config.id, currentMethodName]);
+
+  const [handle, setHandle] = useState(() => {
+    if (isEmailMethod) {
+      return getUserEmail();
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (isEmailMethod && !handle) {
+      const email = getUserEmail();
+      if (email) setHandle(email);
+    }
+  }, [isEmailMethod]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

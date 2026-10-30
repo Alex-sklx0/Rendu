@@ -100,7 +100,7 @@ export default function SubproductDetailPage() {
   const isDisponible = subproducto.disponible !== false;
 
   const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-  let currentUser: { id_empresa?: string | number } | null = null;
+  let currentUser: { id_empresa?: string | number; es_admin?: boolean } | null = null;
   if (storedUser) {
     try {
       currentUser = JSON.parse(storedUser);
@@ -115,6 +115,7 @@ export default function SubproductDetailPage() {
       subproducto.id_empresa &&
       Number(currentUser.id_empresa) === Number(subproducto.id_empresa))
   );
+  const isAdmin = Boolean(currentUser?.es_admin);
 
 
   function handleConfirmarContacto() {
@@ -255,7 +256,11 @@ export default function SubproductDetailPage() {
 
             {/* Botones de acción segun sesión e interés */}
             <div className="mt-8 border-t border-surface-100 pt-6">
-              {isOwner ? (
+              {isAdmin ? (
+                <div className="rounded-2xl bg-surface-100 p-4 text-center text-[15px] font-semibold text-ink-700">
+                  Modo Administrador — visualizando como supervisor del sistema.
+                </div>
+              ) : isOwner ? (
                 <div className="flex flex-col items-start gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-[17px] font-semibold text-blue-900">
                     Esta es tu publicación. Puedes editarla o ver los interesados desde tu perfil.

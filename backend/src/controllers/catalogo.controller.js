@@ -1,14 +1,12 @@
-import { buscarCatalogo, parsearIds, limpiarBusqueda } from '../services/catalogo.service.js';
+import { buscarCatalogo, parsearIds, parsearEntero, limpiarBusqueda } from '../services/catalogo.service.js';
 import { anotarPublicaciones } from '../services/sesion.service.js';
 
 /**
  * GET /api/catalogo — HU-13, HU-14, HU-15
- * Query params (todos opcionales y combinables):
- *   q          texto libre (nombre o descripción)
- *   familias   ids de familia separados por coma, ej. 1,2   (alias: familia, id_familia_material)
- *   municipio  ids de municipio separados por coma, ej. 3   (alias: municipios, id_municipio)
+ * Query params opcionales y combinables:
+ *   q, familias (alias: familia, id_familia_material), municipio (alias: municipios, id_municipio)
+ *   pagina (por defecto 1) y limite (por defecto 50, máximo 100)
  * Solo devuelve subproductos PUBLICADOS y disponibles.
- * Con token, cada item incluye ya_manifeste_interes y es_mia.
  */
 export async function getCatalogo(req, res, next) {
   try {
@@ -19,13 +17,18 @@ export async function getCatalogo(req, res, next) {
       familias: parsearIds(familias ?? familia ?? id_familia_material, 'familias'),
       municipios: parsearIds(municipio ?? municipios ?? id_municipio, 'municipio'),
     };
+    const pagina = parsearEntero(req.query.pagina, 'pagina', { defecto: 1, min: 1, max: 100000 });
+    const limite = parsearEntero(req.query.limite, 'limite', { defecto: 50, min: 1, max: 100 });
 
-    const encontrados = await buscarCatalogo(filtros);
-    const subproductos = await anotarPublicaciones(encontrados, req.usuario);
+    const { items, total } = await buscarCatalogo({ ...filtros, pagina, limite });
+    const subproductos = await anotarPublicaciones(items, req.usuario);
 
     return res.status(200).json({
       ok: true,
-      total: subproductos.length,
+      total: subproductos.length, // items de esta página (igual que antes)
+      total_registros: total, // todos los que cumplen el filtro
+      pagina,
+      limite,
       filtros,
       ...(subproductos.length === 0 && {
         mensaje: 'No se encontraron subproductos con los criterios indicados',

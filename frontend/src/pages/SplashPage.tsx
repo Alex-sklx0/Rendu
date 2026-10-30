@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import renduIcon from "@/img/rendu-icon.svg";
 
 export default function SplashPage() {
-  const navigate = useNavigate();
+  /* const navigate = useNavigate();
 
     useEffect(() => {
     // Redirecciona automáticamente a splash1 después de 5 segundos
@@ -14,7 +14,7 @@ export default function SplashPage() {
     }, 7000);
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate]); */
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 select-none">

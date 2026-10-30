@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabaseClient.js';
-import { ESTADO_PUBLICADO } from './catalogo.service.js';
+import { ESTADO_PUBLICADO, empresaSuspendida } from './catalogo.service.js';
 
 function errorHttp(status, mensaje) {
   const err = new Error(mensaje);
@@ -68,9 +68,11 @@ async function obtenerPublicacionConEmpresa(id_publicacion) {
   if (error) throw errorHttp(500, 'Error al consultar la publicación: ' + error.message);
 
   // Borrador o inexistente responden igual (404), como en HU-16
-  if (!data || data.id_estado_publicacion !== ESTADO_PUBLICADO) {
+    // Borrador, inexistente o de una empresa suspendida responden igual (404), como en HU-16
+  if (!data || data.id_estado_publicacion !== ESTADO_PUBLICADO || (await empresaSuspendida(data.id_empresa))) {
     throw errorHttp(404, 'Publicación no encontrada');
   }
+  
   return data;
 }
 

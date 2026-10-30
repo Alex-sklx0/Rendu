@@ -173,22 +173,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
-  // Interceptor: 401 Unauthorized -> limpiar sesion y redirigir
-  if (res.status === 401) {
-    clearSession();
-    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-      window.location.href = "/login";
-    }
-    let errorMsg = "Sesión vencida. Inicia sesión de nuevo.";
-    try {
-      const data = await res.json();
-      if (data?.error) errorMsg = data.error;
-    } catch {
-      // Ignorar
-    }
-    throw new ApiError(errorMsg, 401);
-  }
-
   // Parsear body
   let body: any = null;
   const contentType = res.headers.get("content-type");
@@ -205,8 +189,31 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
   }
 
+  // Interceptor: 401 Unauthorized -> limpiar sesion y redirigir
+  if (res.status === 401) {
+    clearSession();
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login";
+    }
+    const errorMsg = body?.error || body?.mensaje || "Sesión vencida. Inicia sesión de nuevo.";
+    throw new ApiError(errorMsg, 401, body);
+  }
+
   if (!res.ok) {
-    const message = body?.error || body?.message || `Error ${res.status} al procesar la solicitud.`;
+    if (res.status === 403 && (body?.codigo === "CUENTA_SUSPENDIDA" || body?.error?.includes("suspendida"))) {
+      clearSession();
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+      throw new ApiError(body?.error || "Tu cuenta ha sido suspendida. Contacta al administrador.", 403, body);
+    }
+    if (res.status === 429) {
+      throw new ApiError("Demasiadas solicitudes. Espera un momento antes de reintentar.", 429, body);
+    }
+    if (res.status >= 500) {
+      throw new ApiError("Error interno del servidor. Intenta de nuevo más tarde.", res.status, body);
+    }
+    const message = body?.error || body?.mensaje || `Error ${res.status} al procesar la solicitud.`;
     throw new ApiError(message, res.status, body);
   }
 
@@ -268,6 +275,7 @@ export async function loginUsuario(input: {
         nombre: response.usuario.nombre || response.empresa?.nombre || input.email.split("@")[0],
         id_empresa: response.usuario.id_empresa ?? response.empresa?.id ?? null,
         tipo: response.empresa ? "EMPRESA" : response.persona ? "PERSONA" : null,
+        es_admin: Boolean(response.usuario.es_admin),
         municipio:
           MUNICIPIOS_VALLE_ABURRA[
             (response.empresa?.id_municipio ?? response.persona?.id_municipio ?? 0) - 1
@@ -303,6 +311,7 @@ export async function getMe(): Promise<PerfilSesion> {
           response.usuario.email.split("@")[0],
         id_empresa: response.usuario.id_empresa ?? response.empresa?.id ?? null,
         tipo: response.tipo,
+        es_admin: Boolean(response.usuario.es_admin),
         municipio:
           response.empresa?.municipio ||
           response.persona?.municipio ||
@@ -380,6 +389,56 @@ export async function registrarPersona(input: {
   return unwrap(response, "persona");
 }
 
+// Actualizar perfil completo de una empresa
+export async function actualizarPerfilEmpresa(
+  id_empresa: string | number,
+  input: {
+    nombre?: string;
+    nit?: string;
+    id_municipio?: number;
+    id_rol?: number;
+    contacto?: string | null;
+    id_medio_contacto?: number | null;
+  }
+): Promise<Empresa> {
+  const response = await request<ApiResponse<{ empresa: Empresa }>>(`/empresas/${id_empresa}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+  return unwrap(response, "empresa");
+}
+
+// Actualizar perfil completo de una persona natural
+export async function actualizarPerfilPersona(
+  id_persona: string | number,
+  input: {
+    nombre?: string;
+    cedula?: string;
+    id_municipio?: number;
+    id_rol?: number;
+  }
+): Promise<{ id: number; nombre: string; cedula: string; id_municipio: number; id_rol: number }> {
+  const response = await request<
+    ApiResponse<{ persona: { id: number; nombre: string; cedula: string; id_municipio: number; id_rol: number } }>
+  >(`/personas/${id_persona}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+  return unwrap(response, "persona");
+}
+
+// Subir foto de perfil de usuario
+export async function subirAvatarUsuario(
+  image_base64: string,
+  previous_url?: string | null
+): Promise<{ avatar_url: string }> {
+  const response = await request<ApiResponse<{ avatar_url: string }>>("/usuarios/avatar", {
+    method: "POST",
+    body: JSON.stringify({ image_base64, previous_url: previous_url || null }),
+  });
+  return { avatar_url: response.avatar_url };
+}
+
 // Consulta de medios de contacto disponibles
 export async function getMediosContacto(): Promise<MedioContacto[]> {
   try {
@@ -404,11 +463,13 @@ export async function getMediosContacto(): Promise<MedioContacto[]> {
 // ----------------------------------------------------------------------
 
 // Consulta de subproductos para el catalogo publico
-// Soporta busqueda q, varias familias separadas por coma, y municipio
+// Soporta busqueda q, varias familias separadas por coma, municipio y paginacion
 export async function getCatalogo(params?: {
   query?: string;
   id_familia?: string | string[];
   municipio?: string;
+  pagina?: number;
+  limite?: number;
 }): Promise<SubproductoCatalogo[]> {
   const queryParams = new URLSearchParams();
   if (params?.query) queryParams.set("q", params.query.trim());
@@ -424,10 +485,16 @@ export async function getCatalogo(params?: {
     queryParams.set("municipio", String(municipioId(params.municipio)));
   }
 
+  if (params?.pagina) queryParams.set("pagina", String(params.pagina));
+  if (params?.limite) queryParams.set("limite", String(params.limite));
+
   const qs = queryParams.toString();
   const response = await request<
     ApiResponse<{
       total: number;
+      total_registros?: number;
+      pagina?: number;
+      limite?: number;
       mensaje?: string;
       subproductos: BackendSubproductoWithEmpresa[];
     }>
@@ -442,7 +509,16 @@ export async function getCatalogoDetallado(params?: {
   query?: string;
   id_familia?: string | string[];
   municipio?: string;
-}): Promise<{ total: number; mensaje?: string; subproductos: SubproductoCatalogo[] }> {
+  pagina?: number;
+  limite?: number;
+}): Promise<{
+  total: number;
+  total_registros: number;
+  pagina?: number;
+  limite?: number;
+  mensaje?: string;
+  subproductos: SubproductoCatalogo[];
+}> {
   const queryParams = new URLSearchParams();
   if (params?.query) queryParams.set("q", params.query.trim());
 
@@ -457,10 +533,16 @@ export async function getCatalogoDetallado(params?: {
     queryParams.set("municipio", String(municipioId(params.municipio)));
   }
 
+  if (params?.pagina) queryParams.set("pagina", String(params.pagina));
+  if (params?.limite) queryParams.set("limite", String(params.limite));
+
   const qs = queryParams.toString();
   const response = await request<
     ApiResponse<{
       total: number;
+      total_registros?: number;
+      pagina?: number;
+      limite?: number;
       mensaje?: string;
       subproductos: BackendSubproductoWithEmpresa[];
     }>
@@ -468,7 +550,10 @@ export async function getCatalogoDetallado(params?: {
 
   const rawList = response.subproductos || [];
   return {
-    total: response.total ?? rawList.length,
+    total: response.total_registros ?? response.total ?? rawList.length,
+    total_registros: response.total_registros ?? response.total ?? rawList.length,
+    pagina: response.pagina,
+    limite: response.limite,
     mensaje: response.mensaje,
     subproductos: rawList.map(mapSubproducto),
   };
@@ -556,26 +641,41 @@ export async function actualizarSubproducto(
           SubproductoDetalle,
           "nombre" | "descripcion" | "volumen_disponible" | "image_url" | "disponible"
         >
-      > & { image_base64?: string; id_empresa?: string | number })
+      > & {
+        image_base64?: string;
+        id_empresa?: string | number;
+        id_familia_material?: number;
+        id_unidad_medida?: number;
+        id_municipio?: number;
+      })
     | (string | number),
   arg3?: Partial<
     Pick<
       SubproductoDetalle,
       "nombre" | "descripcion" | "volumen_disponible" | "image_url" | "disponible"
     >
-  > & { image_base64?: string; id_empresa?: string | number }
+  > & {
+    image_base64?: string;
+    id_empresa?: string | number;
+    id_familia_material?: number;
+    id_unidad_medida?: number;
+    id_municipio?: number;
+  }
 ): Promise<SubproductoDetalle> {
   const input = (typeof arg2 === "object" ? arg2 : arg3) || {};
-  const { image_url, image_base64, id_empresa: _omit, ...rest } = input;
+  const { image_url: _url, image_base64, id_empresa: _omit, ...rest } = input;
+
+  const payload: Record<string, unknown> = { ...rest };
+  // Regla backend: Solo enviar image_base64 si es un data URI Base64 nuevo
+  if (image_base64 && typeof image_base64 === "string" && image_base64.startsWith("data:image/")) {
+    payload.image_base64 = image_base64;
+  }
 
   const response = await request<ApiResponse<{ subproducto: BackendSubproductoWithEmpresa }>>(
     `/subproductos/${id}`,
     {
       method: "PATCH",
-      body: JSON.stringify({
-        ...rest,
-        ...(image_base64 ? { image_base64 } : image_url ? { foto_url: image_url } : {}),
-      }),
+      body: JSON.stringify(payload),
     }
   );
 
@@ -665,4 +765,123 @@ export async function getInteresados(
     mensaje: response.mensaje,
     interesados: response.interesados || [],
   };
+}
+
+// ----------------------------------------------------------------------
+// 6. PANEL DE ADMINISTRACIÓN (solo usuarios es_admin)
+// ----------------------------------------------------------------------
+
+export type AdminUsuario = {
+  id: number;
+  email: string;
+  fecha_registro: string;
+  es_admin: boolean;
+  suspendido: boolean;
+  tipo: "EMPRESA" | "PERSONA" | null;
+  nombre: string | null;
+  documento: string | null; // NIT o Cédula
+  id_rol: number | null;
+  municipio: string | null;
+  id_empresa: number | null;
+};
+
+export type AdminSubproducto = {
+  id: number | string;
+  nombre: string;
+  descripcion?: string | null;
+  id_empresa: number | string;
+  empresa?: string;
+  id_familia_material: number;
+  familia?: string;
+  volumen_disponible: number;
+  id_unidad_medida: number;
+  unidad_volumen?: string;
+  id_municipio: number;
+  municipio?: string;
+  foto_url?: string | null;
+  disponible: boolean;
+  id_estado_publicacion: number;
+  estado_publicacion?: "borrador" | "publicado";
+  fecha_registro?: string;
+};
+
+// Listar todos los usuarios para el panel admin
+export async function getAdminUsuarios(): Promise<{ total: number; usuarios: AdminUsuario[] }> {
+  const response = await request<ApiResponse<{ total: number; usuarios: AdminUsuario[] }>>(
+    "/admin/usuarios",
+    { method: "GET" }
+  );
+  return {
+    total: response.total ?? response.usuarios?.length ?? 0,
+    usuarios: response.usuarios || [],
+  };
+}
+
+// Suspender una cuenta de usuario
+export async function suspenderUsuario(id: number | string): Promise<AdminUsuario> {
+  const response = await request<ApiResponse<{ usuario: AdminUsuario }>>(
+    `/admin/usuarios/${id}/suspender`,
+    { method: "PATCH" }
+  );
+  return unwrap(response, "usuario");
+}
+
+// Reactivar una cuenta suspendida
+export async function reactivarUsuario(id: number | string): Promise<AdminUsuario> {
+  const response = await request<ApiResponse<{ usuario: AdminUsuario }>>(
+    `/admin/usuarios/${id}/reactivar`,
+    { method: "PATCH" }
+  );
+  return unwrap(response, "usuario");
+}
+
+// Listar todos los subproductos (admin ve borradores y publicados)
+export async function getAdminSubproductos(
+  estado?: 1 | 2 | null
+): Promise<{ total: number; subproductos: AdminSubproducto[] }> {
+  const qs = estado != null ? `?estado=${estado}` : "";
+  const response = await request<ApiResponse<{ total: number; subproductos: AdminSubproducto[] }>>(
+    `/admin/subproductos${qs}`,
+    { method: "GET" }
+  );
+  return {
+    total: response.total ?? response.subproductos?.length ?? 0,
+    subproductos: (response.subproductos || []).map((s) => ({
+      ...s,
+      estado_publicacion: s.id_estado_publicacion === 2 ? "publicado" : "borrador",
+    })),
+  };
+}
+
+// Despublicar un subproducto por moderación (admin)
+export async function despublicarSubproductoAdmin(
+  id: number | string
+): Promise<AdminSubproducto> {
+  const response = await request<ApiResponse<{ subproducto: AdminSubproducto }>>(
+    `/admin/subproductos/${id}/despublicar`,
+    { method: "PATCH" }
+  );
+  return unwrap(response, "subproducto");
+}
+
+// Cambiar disponibilidad de un subproducto (admin)
+export async function cambiarDisponibilidadAdmin(
+  id: number | string,
+  disponible: boolean
+): Promise<AdminSubproducto> {
+  const response = await request<ApiResponse<{ subproducto: AdminSubproducto }>>(
+    `/admin/subproductos/${id}/disponibilidad`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ disponible }),
+    }
+  );
+  return unwrap(response, "subproducto");
+}
+
+// Eliminar un subproducto completamente (admin)
+export async function eliminarSubproductoAdmin(id: number | string): Promise<void> {
+  await request<ApiResponse<{ mensaje: string }>>(`/admin/subproductos/${id}`, {
+    method: "DELETE",
+  });
 }

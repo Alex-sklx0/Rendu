@@ -16,11 +16,11 @@ import PersonRegistrationPage from "@/pages/PersonRegistrationPage";
 import CompanyRegistrationPage from "@/pages/CompanyRegistrationPage";
 import CommunicationMethodPage from "@/pages/CommunicationMethodPage";
 import CommunicationPage from "@/pages/CommunicationPage";
-import MatchingPage from "@/pages/MatchingPage";
 import ProfilePage from "@/pages/ProfilePage";
 import UpdateSubproductPage from "@/pages/UpdateSubproductPage";
 import NotFoundPage from "@/pages/404NotFoundPage";
 import DisablePostSubproduct from "@/pages/DisablePostSubproduct";
+import AdminPage from "@/pages/AdminPage";
 
 export const router = createBrowserRouter([
   {
@@ -48,13 +48,13 @@ export const router = createBrowserRouter([
       { path: "profile", element: <ProfilePage /> },
       { path: "subproduct/:id/edit", element: <UpdateSubproductPage /> },
       { path: "post-subproduct", element: <PostSubproductPage /> },
-      { path: "matching", element: <MatchingPage /> },
+      { path: "matching", element: <Navigate to="/catalog" replace /> },
 
       // Redireccion de una ruta antigua de registro
-      { path: "register", element: <Navigate to="/pre-register" replace /> },
       { path: "subproducts/new", element: <RegisterSubproductPage /> },
-      { path: "*", element: <NotFoundPage /> },
+      { path: "admin", element: <AdminPage /> },
       { path: "disable-post-subproduct", element: <DisablePostSubproduct /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ]);

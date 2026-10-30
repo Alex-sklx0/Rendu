@@ -36,6 +36,7 @@ export function AppShell() {
                 res.usuario.email.split("@")[0],
               id_empresa: res.usuario.id_empresa ?? res.empresa?.id ?? null,
               tipo: res.tipo,
+              es_admin: Boolean(res.usuario.es_admin),
               municipio: res.empresa?.municipio || res.persona?.municipio,
             };
             setCurrentUser(updated);
@@ -44,6 +45,8 @@ export function AppShell() {
         .catch(() => {
           setCurrentUser(null);
         });
+    } else {
+      setCurrentUser(null);
     }
   }, [location.pathname]);
 
@@ -60,9 +63,9 @@ export function AppShell() {
     "/subproduct",
     "/subproducts",
     "/post-subproduct",
-    "/matching",
     "/register",
     "/disable-post-subproduct",
+    "/admin",
   ];
   const isKnownRoute =
     location.pathname === "/" ||
@@ -82,16 +85,19 @@ export function AppShell() {
     "/communication-method",
   ].some((path) => location.pathname === path || location.pathname.startsWith(path + "/"));
 
-  const isAuthenticated = typeof window !== "undefined" && Boolean(getToken());
+  const isAuthenticated = typeof window !== "undefined" && Boolean(getToken()) && Boolean(currentUser);
   const isCatalogNavigationActive =
     location.pathname === "/catalog" || location.pathname.startsWith("/catalog/");
-  const isPersona = Boolean(currentUser && !currentUser.id_empresa);
+
+  const isEmpresa = isAuthenticated && Boolean(currentUser?.id_empresa);
+  const isAdmin = isAuthenticated && Boolean(currentUser?.es_admin);
+
   const navigationItems = [
-    ...(!isPersona
+    ...(isEmpresa
       ? [{
           value: "publish",
           label: "Publicar",
-          path: isAuthenticated ? "/post-subproduct" : "/login",
+          path: "/post-subproduct",
           icon: <span aria-hidden="true" className="text-base font-extrabold">+</span>,
         }]
       : []),
@@ -110,14 +116,20 @@ export function AppShell() {
         />
       ),
     },
-    {
-      value: "matching",
-      label: "Matching",
-      path: "/matching",
-      icon: <span aria-hidden="true" className="text-base">↔</span>,
-    },
+    ...(isAdmin
+      ? [{
+          value: "admin",
+          label: "Admin",
+          path: "/admin",
+          icon: (
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          ),
+        }]
+      : []),
   ];
-  const isPrimaryNavigationRoute = ["/catalog", "/post-subproduct", "/matching"].some(
+  const isPrimaryNavigationRoute = ["/catalog", "/post-subproduct", "/admin"].some(
     (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
   );
   const activeNavigationValue = isPrimaryNavigationRoute
