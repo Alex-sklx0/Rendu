@@ -338,6 +338,32 @@ export async function eliminarCuenta(idUsuario: string | number): Promise<void> 
 // 2. PERFILES (EMPRESAS Y PERSONAS)
 // ----------------------------------------------------------------------
 
+// Verificar disponibilidad de NIT antes de registrar
+export async function verificarNitExiste(nit: string): Promise<boolean> {
+  try {
+    const response = await request<ApiResponse<{ existe: boolean }>>(
+      `/empresas/verificar-nit/${encodeURIComponent(nit.trim())}`,
+      { method: "GET" }
+    );
+    return Boolean(response.existe);
+  } catch {
+    return false;
+  }
+}
+
+// Verificar disponibilidad de cédula antes de registrar
+export async function verificarCedulaExiste(cedula: string): Promise<boolean> {
+  try {
+    const response = await request<ApiResponse<{ existe: boolean }>>(
+      `/personas/verificar-cedula/${encodeURIComponent(cedula.trim())}`,
+      { method: "GET" }
+    );
+    return Boolean(response.existe);
+  } catch {
+    return false;
+  }
+}
+
 // Registro de empresa (id_usuario se toma del token Bearer en el backend)
 export async function registrarEmpresa(input: {
   nombre: string;

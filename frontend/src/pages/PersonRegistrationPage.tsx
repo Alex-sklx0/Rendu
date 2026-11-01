@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { registrarUsuario, registrarPersona, getMe } from "@/api/client";
+import {
+  registrarUsuario,
+  registrarPersona,
+  getMe,
+  verificarCedulaExiste,
+  eliminarCuenta,
+  clearSession,
+} from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 import { Select } from "@/components/ui/Select";
 
@@ -23,6 +30,7 @@ export default function PersonRegistrationPage() {
   function handleCedulaChange(val: string) {
     const raw = val.replace(/[^\d]/g, "").slice(0, 10);
     setCedula(raw);
+    if (error) setError(null);
   }
 
   // Envio del formulario de registro
@@ -43,18 +51,35 @@ export default function PersonRegistrationPage() {
     setIsSubmitting(true);
     setError(null);
     try {
+      // 0. Pre-validar si la cédula ya existe ANTES de registrar el usuario
+      const cedulaExiste = await verificarCedulaExiste(cedula.trim());
+      if (cedulaExiste) {
+        setError("Ya existe una persona registrada con esa cédula.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const nombreFinal = nombre.trim() || email.split("@")[0];
       
       // 1. Registrar cuenta de usuario -> guarda token en localStorage
-      await registrarUsuario({ email, password });
+      const user = await registrarUsuario({ email, password });
 
       // 2. Registrar perfil de persona natural (sin id_usuario, backend lo saca del token)
-      await registrarPersona({
-        nombre: nombreFinal,
-        cedula: cedula.trim(),
-        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
-        id_rol: tipoActividad === "Reciclador" ? 3 : 2,
-      });
+      try {
+        await registrarPersona({
+          nombre: nombreFinal,
+          cedula: cedula.trim(),
+          id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
+          id_rol: tipoActividad === "Reciclador" ? 3 : 2,
+        });
+      } catch (personaErr) {
+        // Si el registro de la persona falla, eliminar el usuario recién creado para no dejarlo huérfano
+        try {
+          if (user?.id) await eliminarCuenta(user.id);
+        } catch (_) {}
+        clearSession();
+        throw personaErr;
+      }
 
       // 3. Refrescar sesion completa
       await getMe();

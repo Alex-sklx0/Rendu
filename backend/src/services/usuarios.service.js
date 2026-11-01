@@ -146,3 +146,21 @@ export async function eliminarUsuario(id) {
   // Solo cuando la BD quedó limpia se borran las imágenes del Storage
   for (const url of fotos) await deleteStorageFile(url);
 }
+
+/**
+ * Elimina un usuario si y solo si no tiene ninguna empresa ni persona asociada.
+ * Útil para limpiar usuarios creados en el paso 1 del registro si el paso 2 falla.
+ */
+export async function eliminarUsuarioHuerfano(id) {
+  if (!id) return false;
+  const [{ data: empresa }, { data: persona }] = await Promise.all([
+    supabase.from('empresas').select('id').eq('id_usuario', id).maybeSingle(),
+    supabase.from('personas').select('id').eq('id_usuario', id).maybeSingle(),
+  ]);
+
+  if (!empresa && !persona) {
+    await supabase.from('usuarios').delete().eq('id', id);
+    return true;
+  }
+  return false;
+}

@@ -120,4 +120,15 @@ export async function actualizarEmpresa(id_empresa, cambios) {
   return data;
 }
 
+export async function existeNit(nit) {
+  const nitNormalizado = String(nit).trim();
+  const { data, error } = await supabase
+    .from('empresas')
+    .select('id')
+    .eq('nit', nitNormalizado)
+    .maybeSingle();
+  if (error) throw errorHttp(500, 'Error al verificar el NIT');
+  return !!data;
+}
+
 export { MUNICIPIOS_VALIDOS, ROLES_VALIDOS_EMPRESA };

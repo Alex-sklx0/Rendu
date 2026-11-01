@@ -3,11 +3,15 @@ import {
   postRegistrarEmpresa,
   patchContactoEmpresa,
   putActualizarEmpresa,
+  getVerificarNit,
 } from '../controllers/empresas.controller.js';
 import { autenticarOpcional, requerirAuth } from '../middlewares/auth.js';
 import { validarId } from '../middlewares/validaciones.js';
 
 const router = Router();
+
+// GET   /api/empresas/verificar-nit/:nit -> Verificar disponibilidad de NIT (público)
+router.get('/verificar-nit/:nit', getVerificarNit);
 
 router.use(autenticarOpcional, requerirAuth);
 router.param('id', validarId);

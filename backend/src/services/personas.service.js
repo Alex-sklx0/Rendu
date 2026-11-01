@@ -87,4 +87,15 @@ export async function actualizarPersona(id_persona, cambios) {
   return data;
 }
 
+export async function existeCedula(cedula) {
+  const cedulaNormalizada = String(cedula).trim();
+  const { data, error } = await supabase
+    .from('personas')
+    .select('id')
+    .eq('cedula', cedulaNormalizada)
+    .maybeSingle();
+  if (error) throw errorHttp(500, 'Error al verificar la cédula');
+  return !!data;
+}
+
 export { MUNICIPIOS_VALIDOS, ROLES_VALIDOS_PERSONA };

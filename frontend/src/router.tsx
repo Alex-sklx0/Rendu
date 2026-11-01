@@ -21,6 +21,8 @@ import UpdateSubproductPage from "@/pages/UpdateSubproductPage";
 import NotFoundPage from "@/pages/404NotFoundPage";
 import DisablePostSubproduct from "@/pages/DisablePostSubproduct";
 import AdminPage from "@/pages/AdminPage";
+import AboutPage from "@/pages/AboutPage";
+import ContactPage from "@/pages/ContactPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +55,8 @@ export const router = createBrowserRouter([
       // Redireccion de una ruta antigua de registro
       { path: "subproducts/new", element: <RegisterSubproductPage /> },
       { path: "admin", element: <AdminPage /> },
+      { path: "about", element: <AboutPage /> },
+      { path: "contact", element: <ContactPage /> },
       { path: "disable-post-subproduct", element: <DisablePostSubproduct /> },
       { path: "*", element: <NotFoundPage /> },
     ],

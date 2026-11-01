@@ -1,9 +1,16 @@
 import { Router } from 'express';
-import { postRegistrarPersona, putActualizarPersona } from '../controllers/personas.controller.js';
+import {
+  postRegistrarPersona,
+  putActualizarPersona,
+  getVerificarCedula,
+} from '../controllers/personas.controller.js';
 import { autenticarOpcional, requerirAuth } from '../middlewares/auth.js';
 import { validarId } from '../middlewares/validaciones.js';
 
 const router = Router();
+
+// GET   /api/personas/verificar-cedula/:cedula -> Verificar disponibilidad de cédula (público)
+router.get('/verificar-cedula/:cedula', getVerificarCedula);
 
 router.use(autenticarOpcional, requerirAuth);
 router.param('id', validarId);

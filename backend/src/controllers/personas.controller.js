@@ -1,19 +1,35 @@
 import {
   registrarPersona,
   actualizarPersona,
+  existeCedula,
   MUNICIPIOS_VALIDOS,
   ROLES_VALIDOS_PERSONA,
 } from '../services/personas.service.js';
+import { eliminarUsuarioHuerfano } from '../services/usuarios.service.js';
 import { resolverIdUsuario } from '../middlewares/auth.js';
 import { limpiarTexto } from '../middlewares/validaciones.js';
 
+export async function getVerificarCedula(req, res, next) {
+  try {
+    const cedula = req.params.cedula ?? req.query.cedula;
+    if (!cedula || !String(cedula).trim()) {
+      return res.status(400).json({ ok: false, error: 'La cédula es obligatoria' });
+    }
+    const existe = await existeCedula(cedula);
+    return res.status(200).json({ ok: true, existe });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function postRegistrarPersona(req, res, next) {
+  let id_usuario;
   try {
     const body = req.body ?? {};
     const { cedula, id_municipio, id_rol } = body;
     const nombre = limpiarTexto(body.nombre, 150);
     // El usuario sale siempre del token; si el cliente manda otro id_usuario, 403
-    const id_usuario = resolverIdUsuario(req, body.id_usuario);
+    id_usuario = resolverIdUsuario(req, body.id_usuario);
 
     if (!nombre || !cedula || !id_municipio || !id_rol) {
       return res.status(400).json({
@@ -50,6 +66,10 @@ export async function postRegistrarPersona(req, res, next) {
       persona,
     });
   } catch (error) {
+    // Si falló el registro de la persona (ej: cédula duplicada 409), limpiar el usuario huérfano
+    if (id_usuario) {
+      await eliminarUsuarioHuerfano(Number(id_usuario)).catch(() => {});
+    }
     next(error);
   }
 }

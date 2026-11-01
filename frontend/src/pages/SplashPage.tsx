@@ -1,7 +1,6 @@
 // Pantalla de bienvenida con el logo
 
-import { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import renduIcon from "@/img/rendu-icon.svg";
 
 export default function SplashPage() {

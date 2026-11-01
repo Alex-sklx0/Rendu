@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { registrarEmpresa, registrarUsuario, getMe } from "@/api/client";
+import {
+  registrarEmpresa,
+  registrarUsuario,
+  getMe,
+  verificarNitExiste,
+  eliminarCuenta,
+  clearSession,
+} from "@/api/client";
 import { MUNICIPIOS_VALLE_ABURRA } from "@/lib/constants";
 import { Select } from "@/components/ui/Select";
 
@@ -47,16 +54,33 @@ export default function CompanyRegistrationPage() {
     setIsSubmitting(true);
     setError(null);
     try {
+      // 0. Pre-validar si el NIT ya existe ANTES de registrar el usuario
+      const nitExiste = await verificarNitExiste(nit);
+      if (nitExiste) {
+        setError("Ya existe una empresa registrada con ese NIT.");
+        setIsSubmitting(false);
+        return;
+      }
+
       // 1. Crear el usuario en el sistema -> guarda token en localStorage
-      await registrarUsuario({ email, password });
+      const user = await registrarUsuario({ email, password });
       
       // 2. Registrar los datos de la empresa (sin id_usuario, backend lo saca del token)
-      await registrarEmpresa({
-        nombre: nombreEmpresa,
-        nit,
-        id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
-        id_rol: tipoEmpresa === "Generador" ? 1 : 2,
-      });
+      try {
+        await registrarEmpresa({
+          nombre: nombreEmpresa,
+          nit,
+          id_municipio: MUNICIPIOS_VALLE_ABURRA.indexOf(municipio) + 1,
+          id_rol: tipoEmpresa === "Generador" ? 1 : 2,
+        });
+      } catch (empresaErr) {
+        // Si el registro de la empresa falla, eliminar el usuario recién creado para no dejarlo huérfano
+        try {
+          if (user?.id) await eliminarCuenta(user.id);
+        } catch (_) {}
+        clearSession();
+        throw empresaErr;
+      }
 
       // 3. Refrescar sesion completa en el estado global
       await getMe();

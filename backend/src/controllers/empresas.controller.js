@@ -2,20 +2,36 @@ import {
   registrarEmpresa,
   actualizarContactoEmpresa,
   actualizarEmpresa,
+  existeNit,
   MUNICIPIOS_VALIDOS,
   ROLES_VALIDOS_EMPRESA,
 } from '../services/empresas.service.js';
+import { eliminarUsuarioHuerfano } from '../services/usuarios.service.js';
 import { resolverIdUsuario, resolverIdEmpresa } from '../middlewares/auth.js';
 import { limpiarTexto } from '../middlewares/validaciones.js';
 
+export async function getVerificarNit(req, res, next) {
+  try {
+    const nit = req.params.nit ?? req.query.nit;
+    if (!nit || !String(nit).trim()) {
+      return res.status(400).json({ ok: false, error: 'El NIT es obligatorio' });
+    }
+    const existe = await existeNit(nit);
+    return res.status(200).json({ ok: true, existe });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function postRegistrarEmpresa(req, res, next) {
+  let id_usuario;
   try {
     const body = req.body ?? {};
     const { nit, id_municipio, id_rol, id_medio_contacto } = body;
     const nombre = limpiarTexto(body.nombre, 150);
     const contacto = limpiarTexto(body.contacto, 255);
     // El usuario sale siempre del token; si el cliente manda otro id_usuario, 403
-    const id_usuario = resolverIdUsuario(req, body.id_usuario);
+    id_usuario = resolverIdUsuario(req, body.id_usuario);
 
     if (!nombre || !nit || !id_municipio || !id_rol) {
       return res.status(400).json({
@@ -63,6 +79,10 @@ export async function postRegistrarEmpresa(req, res, next) {
       empresa,
     });
   } catch (error) {
+    // Si falló el registro de la empresa (ej: NIT duplicado 409), limpiar el usuario huérfano
+    if (id_usuario) {
+      await eliminarUsuarioHuerfano(Number(id_usuario)).catch(() => {});
+    }
     next(error);
   }
 }

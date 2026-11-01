@@ -180,6 +180,16 @@ export default function ProfilePage() {
         if (userData?.id) {
           localStorage.setItem(`user_avatar_${userData.id}`, res.avatar_url);
         }
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            parsed.avatar_url = res.avatar_url;
+            localStorage.setItem("user", JSON.stringify(parsed));
+          } catch {}
+        }
+        window.dispatchEvent(new CustomEvent("rendu_avatar_changed", { detail: res.avatar_url }));
+        window.dispatchEvent(new Event("storage"));
       } catch (err) {
         console.error("Error al subir avatar:", err);
         alert(err instanceof Error ? err.message : "Error al subir la imagen");

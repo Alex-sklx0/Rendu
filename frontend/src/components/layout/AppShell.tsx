@@ -2,9 +2,9 @@ import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-do
 import { useEffect, useState } from "react";
 import catalogIcon from "@/img/catalog.svg";
 import userIcon from "@/img/user-black.svg";
-import notifyImg from "@/img/notify.svg";
 import { RenduLogo } from "@/components/ui/RenduLogo";
 import { RubberSegment } from "@/components/ui/RubberSegment";
+import { Footer } from "@/components/layout/Footer";
 import { getMe, getToken } from "@/api/client";
 
 export function AppShell() {
@@ -18,6 +18,20 @@ export function AppShell() {
     } catch {
       return null;
     }
+  });
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const str = localStorage.getItem("user");
+      const user = str ? JSON.parse(str) : null;
+      if (user?.id) {
+        return localStorage.getItem(`user_avatar_${user.id}`) || user.avatar_url || null;
+      }
+    } catch {
+      return null;
+    }
+    return null;
   });
 
   // Restaurar sesion real al cargar o recargar
@@ -40,15 +54,48 @@ export function AppShell() {
               municipio: res.empresa?.municipio || res.persona?.municipio,
             };
             setCurrentUser(updated);
+            const cachedAvatar =
+              localStorage.getItem(`user_avatar_${res.usuario.id}`) ||
+              (res.usuario as any).avatar_url ||
+              null;
+            setAvatarUrl(cachedAvatar);
           }
         })
         .catch(() => {
           setCurrentUser(null);
+          setAvatarUrl(null);
         });
     } else {
       setCurrentUser(null);
+      setAvatarUrl(null);
     }
   }, [location.pathname]);
+
+  // Escuchar evento personalizado cuando se actualiza la foto de perfil
+  useEffect(() => {
+    const handleAvatarUpdate = (e: any) => {
+      if (e?.detail) {
+        setAvatarUrl(e.detail);
+      } else {
+        try {
+          const str = localStorage.getItem("user");
+          const user = str ? JSON.parse(str) : null;
+          if (user?.id) {
+            setAvatarUrl(localStorage.getItem(`user_avatar_${user.id}`) || user.avatar_url || null);
+          }
+        } catch {
+          setAvatarUrl(null);
+        }
+      }
+    };
+
+    window.addEventListener("rendu_avatar_changed", handleAvatarUpdate);
+    window.addEventListener("storage", handleAvatarUpdate);
+    return () => {
+      window.removeEventListener("rendu_avatar_changed", handleAvatarUpdate);
+      window.removeEventListener("storage", handleAvatarUpdate);
+    };
+  }, []);
 
   const knownRoutePrefixes = [
     "/splash",
@@ -66,6 +113,8 @@ export function AppShell() {
     "/register",
     "/disable-post-subproduct",
     "/admin",
+    "/about",
+    "/contact",
   ];
   const isKnownRoute =
     location.pathname === "/" ||
@@ -162,27 +211,27 @@ export function AppShell() {
 
             {/* Notificaciones y avatar del usuario */}
             <div className="flex items-center gap-3 justify-self-end">
-              {/* Icono de notificaciones */}
-              <button
-                type="button"
-                className="relative rounded-full p-2 text-ink-900 transition-colors hover:bg-surface-100"
-                aria-label="Notificaciones"
-              >
-                <img
-                  src={notifyImg}
-                  alt="Notificaciones"
-                  className="h-12 w-12 object-contain"
-                />
-              </button>
 
               {/* Avatar del usuario, lleva al perfil o al login */}
               <Link
                 to={isAuthenticated ? "/profile" : "/login"}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d9d9d9] text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner"
+                className={`flex h-12 w-12 items-center justify-center rounded-full text-ink-700 transition-transform hover:scale-105 overflow-hidden shadow-inner ${
+                  isAuthenticated && avatarUrl
+                    ? "ring-2 ring-[#23ce6b]/50 bg-white"
+                    : "bg-[#d9d9d9]"
+                }`}
                 title={isAuthenticated ? "Mi cuenta / Perfil" : "Iniciar sesión"}
                 aria-label="Perfil de usuario"
               >
-                <img src={userIcon} width="24" height="24" aria-hidden="true" alt="" />
+                {isAuthenticated && avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={currentUser?.nombre || "Perfil de usuario"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <img src={userIcon} width="24" height="24" aria-hidden="true" alt="" />
+                )}
               </Link>
             </div>
           </div>
@@ -199,6 +248,9 @@ export function AppShell() {
           </div>
         )}
       </main>
+
+      {/* Pie de pagina */}
+      {!isStandaloneScreen && <Footer />}
     </div>
   );
 }
